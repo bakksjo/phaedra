@@ -21,6 +21,7 @@ const config: ForgeConfig = {
     new AutoUnpackNativesPlugin({}),
     new WebpackPlugin({
       mainConfig,
+      devContentSecurityPolicy: '', // Let app decide the CSP
       renderer: {
         config: rendererConfig,
         entryPoints: [
