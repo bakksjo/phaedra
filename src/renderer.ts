@@ -27,5 +27,6 @@
  */
 
 import './index.css';
+import './init-top-level-react-element';
 
 console.log('👋 This message is being logged by "renderer.js", included via webpack');
