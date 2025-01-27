@@ -22,7 +22,7 @@ export const PhaedraApp = () => {
   const [state, setState] = useState<IPhaedraAppState>(initialState);
 
   useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/todos')
+    fetch('http://localhost:3001/todos')
       .then(response => response.json() as Promise<Todo[]>)
       .then(todos => setState((prevState) =>({ ...prevState, todos: todos.slice(0, 10), loading: false })))
       .catch(err => console.log(err));
