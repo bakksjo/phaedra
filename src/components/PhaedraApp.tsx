@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
+import { z } from 'zod';
 
 export const PhaedraApp = () => {
 
-  interface Todo {
-    userId: number;
-    id: number;
-    title: string;
-    completed: boolean;
-  }
+  const todoSchema = z.object({
+    userId: z.number(),
+    id: z.number(),
+    title: z.string(),
+    completed: z.boolean()
+  });
+
+  const fetchTodosSchema = z.array(todoSchema);
+
+  type TodoItem = z.infer<typeof todoSchema>;
 
   interface IPhaedraAppState {
-    todos: Todo[];
+    todos: TodoItem[];
     loading: boolean;
   }
 
@@ -23,9 +28,13 @@ export const PhaedraApp = () => {
 
   useEffect(() => {
     fetch('http://localhost:3001/todos')
-      .then(response => response.json() as Promise<Todo[]>)
+      .then(response => response.json())
+      .then(json => fetchTodosSchema.parse(json))
       .then(todos => setState((prevState) =>({ ...prevState, todos: todos.slice(0, 10), loading: false })))
-      .catch(err => console.log(err));
+      .catch(err => {
+        console.error('Error parsing server response:', err);
+        setState((prevState) => ({ ...prevState, loading: false }));
+      });
   }, []);
 
   return (
