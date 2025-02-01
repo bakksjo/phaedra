@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FetchTodosResponse, fetchTodosResponseSchema, TodoItem } from '../phaedraSchemas';
+import { TodoCard } from './TodoCard';
 
 const fetchTodos = async (url: string): Promise<FetchTodosResponse> => {
   const response = await fetch(url);
@@ -35,14 +36,11 @@ export const TodoList = () => {
       {todos.length === 0 && !loading ? (
         <h2>No todos found</h2>
       ) : (
-        <ul>
+        <div>
           {todos.map((todo) => (
-            <li key={todo.id}>
-              <input type="checkbox" checked={todo.state === 'DONE'} readOnly />
-              {todo.title} (State: {todo.state}, Last Modified: {new Date(todo.lastModifiedTime).toLocaleString()})
-            </li>
+            <TodoCard key={todo.id} todo={todo} />
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
