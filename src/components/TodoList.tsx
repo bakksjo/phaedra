@@ -38,8 +38,8 @@ export const TodoList = () => {
         <ul>
           {todos.map((todo) => (
             <li key={todo.id}>
-              <input type="checkbox" checked={todo.completed} readOnly />
-              {todo.title}
+              <input type="checkbox" checked={todo.state === 'DONE'} readOnly />
+              {todo.title} (State: {todo.state}, Last Modified: {new Date(todo.lastModifiedTime).toLocaleString()})
             </li>
           ))}
         </ul>

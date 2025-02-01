@@ -1,10 +1,11 @@
 import { z } from 'zod';
 
 export const todoSchema = z.object({
-  userId: z.number(),
-  id: z.number(),
+  createdByUser: z.string(),
+  id: z.string(), // GUID
+  lastModifiedTime: z.string().datetime(), // ISO 8601 string
+  state: z.enum(['TODO', 'ONGOING', 'DONE']),
   title: z.string(),
-  completed: z.boolean()
 });
 export type TodoItem = z.infer<typeof todoSchema>;
 

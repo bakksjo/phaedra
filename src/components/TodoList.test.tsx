@@ -2,14 +2,29 @@ import { act } from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TodoList } from './TodoList';
+import { FetchTodosResponse } from '../phaedraSchemas';
 
-// Mock the fetch function to simulate a successful response with some TODOs.
+const mockTodos: FetchTodosResponse = [
+  {
+    createdByUser: 'user1',
+    id: '1',
+    lastModifiedTime: new Date().toISOString(),
+    state: 'TODO',
+    title: 'Test TODO 1',
+  },
+  {
+    createdByUser: 'user2',
+    id: '2',
+    lastModifiedTime: new Date().toISOString(),
+    state: 'DONE',
+    title: 'Test TODO 2',
+  },
+];
+
+// Mock the fetch function to simulate a successful response with some TODOs
 global.fetch = jest.fn(() =>
   Promise.resolve({
-    json: () => Promise.resolve([
-      { userId: 1, id: 1, title: "Test TODO 1", completed: false },
-      { userId: 1, id: 2, title: "Test TODO 2", completed: true },
-    ]),
+    json: () => Promise.resolve(mockTodos),
   })
 ) as jest.Mock;
 
@@ -33,7 +48,8 @@ describe('TodoList', () => {
   
     expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText('Test TODO 1')).toBeInTheDocument();
-    expect(screen.queryByText('Test TODO 2')).toBeInTheDocument();
+    screen.debug();
+    expect(screen.queryByText(/Test TODO 1/)).toBeInTheDocument();
+    expect(screen.queryByText(/Test TODO 2/)).toBeInTheDocument();
   });
 });
