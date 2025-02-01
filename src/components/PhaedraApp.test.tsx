@@ -3,15 +3,9 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PhaedraApp } from './PhaedraApp';
 
-// Mock the fetch function to simulate a successful response with some TODOs.
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    json: () => Promise.resolve([
-      { userId: 1, id: 1, title: "Test TODO 1", completed: false },
-      { userId: 1, id: 2, title: "Test TODO 2", completed: true },
-    ]),
-  })
-) as jest.Mock;
+jest.mock('./TodoList', () => ({
+  TodoList: () => <div data-testid="todo-list">Mocked TodoList</div>,
+}));
 
 describe('PhaedraApp', () => {
   afterEach(() => {
@@ -21,6 +15,26 @@ describe('PhaedraApp', () => {
   test('the app starts by showing the username input component', async () => {
     render(<PhaedraApp />);
 
-    expect(screen.getByTestId('username-input')).toBeInTheDocument();
+    expect(screen.queryByTestId('username-input')).toBeInTheDocument();
+    expect(screen.queryByTestId('todo-list')).not.toBeInTheDocument();
+  });
+
+  test('the app shows the TODO list when initial username is set', async () => {
+    await act(async () => {
+      render(<PhaedraApp initialUsername="testuser" />);
+    });
+
+    expect(screen.queryByTestId('todo-list')).toBeInTheDocument();
+    expect(screen.queryByTestId('username-input')).not.toBeInTheDocument();
+  });
+
+  test('undefined initial username is handled', async () => {
+    const initialUsername: string | undefined = undefined;
+    await act(async () => {
+      render(<PhaedraApp initialUsername={initialUsername} />);
+    });
+
+    expect(screen.queryByTestId('username-input')).toBeInTheDocument();
+    expect(screen.queryByTestId('todo-list')).not.toBeInTheDocument();
   });
 });

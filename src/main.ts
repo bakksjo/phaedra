@@ -20,7 +20,8 @@ const createWindow = (): void => {
     webPreferences: {
       devTools: true,
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-      nodeIntegration: false
+      nodeIntegration: false,
+      additionalArguments: ['--initial-username=backsea']
     },
   });
 

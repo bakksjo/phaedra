@@ -2,16 +2,18 @@ import { useState } from 'react';
 import { TodoList } from './TodoList';
 import { UsernameInput } from './UsernameInput';
 
+interface IPhaedraAppProps {
+  initialUsername?: string;
+}
+
 interface IPhaedraAppState {
   username: string | null;
 }
 
-const initialState: IPhaedraAppState = {
-  username: null,
-};
-
-export const PhaedraApp = () => {
-  const [state, setState] = useState<IPhaedraAppState>(initialState);
+export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
+  const [state, setState] = useState<IPhaedraAppState>({
+    username: initialUsername || null,
+  });
 
   const handleUsernameSubmit = (username: string) => {
     setState((prevState) => ({ ...prevState, username }));
@@ -22,7 +24,10 @@ export const PhaedraApp = () => {
       {!state.username ? (
         <UsernameInput onSubmit={handleUsernameSubmit} />
       ) : (
-        <TodoList />
+        <>
+          <span>Welcome, {state.username}.</span>
+          <TodoList />
+        </>
       )}
     </div>
   );

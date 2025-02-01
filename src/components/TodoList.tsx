@@ -28,7 +28,7 @@ export const TodoList = () => {
   }, []);
 
   return (
-    <div>
+    <div data-testid="todo-list">
       <h2>Todo List</h2>
 
       {loading && <h2>Loading...</h2>}

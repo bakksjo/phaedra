@@ -27,4 +27,11 @@
  */
 
 import './index.css';
-import './init-top-level-react-element';
+import { initTopLevelReactElement } from './init-top-level-react-element';
+
+// Get a dynamic username based on the process ID for each window.
+const username = 'pid' + window.process.pid;
+
+initTopLevelReactElement(username);
+
+
