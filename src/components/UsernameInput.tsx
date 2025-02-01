@@ -16,6 +16,12 @@ export const UsernameInput = ({ onSubmit }: IUsernameInputProps) => {
     onSubmit(currentValue);
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSubmit();
+    }
+  };
+
   return (
     <div>
       <input
@@ -23,6 +29,7 @@ export const UsernameInput = ({ onSubmit }: IUsernameInputProps) => {
         type="text"
         value={currentValue}
         onChange={(e) => setCurrentValue(e.target.value.trim())}
+        onKeyDown={handleKeyDown}
         placeholder="Enter your username"
       />
       <button
