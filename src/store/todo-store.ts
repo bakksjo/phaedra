@@ -1,6 +1,7 @@
 import { TodoItem } from "../phaedra.types";
 
 export interface ITodoStore {
+  getLists(): string[];
   add(listName: string, todo: TodoItem): void;
   getById(listName: string, todoId: string): TodoItem | undefined;
   list(listName: string): TodoItem[] | undefined;

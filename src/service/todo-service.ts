@@ -4,6 +4,7 @@ import { TodoItem } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { ITodoStore } from '../store/todo-store';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
+import { v4 as uuidv4 } from 'uuid';
 
 const LIST_NAME = 'default'; // Hardcoded for now (TODO).
 
@@ -11,21 +12,21 @@ const createAndInitializeStore = (): ITodoStore => {
   const preExistingTodos: TodoItem[] = [
     {
       createdByUser: 'user1',
-      id: '1',
+      id: uuidv4(),
       lastModifiedTime: new Date().toISOString(),
       state: 'TODO',
       title: 'delectus aut autem',
     },
     {
       createdByUser: 'user1',
-      id: '2',
+      id: uuidv4(),
       lastModifiedTime: new Date().toISOString(),
       state: 'ONGOING',
       title: 'quis ut nam facilis et officia qui',
     },
     {
       createdByUser: 'user1',
-      id: '3',
+      id: uuidv4(),
       lastModifiedTime: new Date().toISOString(),
       state: 'DONE',
       title: 'fugiat veniam minus',
@@ -41,18 +42,29 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
   apiServer.use(express.json());
   apiServer.use(zodErrorHandler);
 
-  apiServer.get('/todos', (req: Request, res: Response) => {
+  apiServer.get('/todo-lists', (req: Request, res: Response) => {
     res.set({
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     });
-    const todos = todoStore.list(LIST_NAME);
+    const lists = todoStore.getLists();
+    res.send(lists);
+  });
+
+  apiServer.get('/todo-lists/:listName/todos', (req: Request, res: Response) => {
+    const listName = req.params.listName;
+    res.set({
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    });
+    const todos = todoStore.list(listName);
     res.send(todos);
   });
 
-  apiServer.post('/todos', (req: Request, res: Response) => {
+  apiServer.post('/todo-lists/:listName/todos', (req: Request, res: Response) => {
+    const listName = req.params.listName;
     const newTodo: TodoItem = todoSchema.parse(req.body);
-    todoStore.add(LIST_NAME, newTodo);
+    todoStore.add(listName, newTodo);
     res.set({
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',

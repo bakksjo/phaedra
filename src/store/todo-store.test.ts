@@ -14,6 +14,7 @@ describe('TodoStore', () => {
   };
 
   beforeEach(() => {
+    // TODO: Make this test a implementation-agnostic "template" that can be run against multiple implementations.
     store = new EphemeralTodoStore();
   });
 
@@ -100,5 +101,21 @@ describe('TodoStore', () => {
   test('returns empty array for non-existent list', () => {
     const todos = store.list('non-existent-list');
     expect(todos).toBeUndefined();
+  });
+
+  test('can list all existing TODO lists', () => {
+    store.add(listName, todo);
+    const anotherListName = 'anotherTestList';
+    store.add(anotherListName, { ...todo, id: '2' });
+
+    const lists = store.getLists();
+    expect(lists).toHaveLength(2);
+    expect(lists).toContain(listName);
+    expect(lists).toContain(anotherListName);
+  });
+
+  test('returns empty array when no lists exist', () => {
+    const lists = store.getLists();
+    expect(lists).toHaveLength(0);
   });
 });

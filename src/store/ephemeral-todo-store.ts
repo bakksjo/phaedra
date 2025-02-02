@@ -8,6 +8,10 @@ interface TodoList {
 export class EphemeralTodoStore implements ITodoStore {
   private todoLists: TodoList = {};
 
+  getLists(): string[] {
+    return Object.keys(this.todoLists);
+  }
+
   add(listName: string, todo: TodoItem): void {
     if (!this.todoLists[listName]) {
       this.todoLists[listName] = [];

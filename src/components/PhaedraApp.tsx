@@ -19,6 +19,8 @@ export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
     setState((prevState) => ({ ...prevState, username }));
   };
 
+  const listName = 'default'; // TODO: Hardcoded for now.
+
   return (
     <div className="todo-list">
       {!state.username ? (
@@ -26,7 +28,8 @@ export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
       ) : (
         <>
           <span>Welcome, {state.username}.</span>
-          <TodoList />
+          <h2>Todo List: {listName}</h2>
+          <TodoList listName={listName}/>
         </>
       )}
     </div>

@@ -35,19 +35,19 @@ describe('TodoList', () => {
   });
 
   test('the loading screen is shown initially', () => {
-    render(<TodoList />);
+    render(<TodoList listName="whatever" />);
 
-    expect(screen.queryByText('Loading...')).toBeInTheDocument();
+    expect(screen.queryByText(/Loading/)).toBeInTheDocument();
     expect(screen.queryByText('Test TODO 1')).not.toBeInTheDocument();
     expect(screen.queryByText('Test TODO 2')).not.toBeInTheDocument();
   });
 
   test('shows TODOs after loading', async () => {
     await act(async () => {
-      render(<TodoList />);
+      render(<TodoList listName="doesn't matter" />);
     });
   
-    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Loading/)).not.toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(screen.queryByText(/Test TODO 1/)).toBeInTheDocument();
     expect(screen.queryByText(/Test TODO 2/)).toBeInTheDocument();
