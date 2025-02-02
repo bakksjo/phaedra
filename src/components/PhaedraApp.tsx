@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TodoList } from './TodoList';
 import { UsernameInput } from './UsernameInput';
+import './PhaedraApp.css';
 
 interface IPhaedraAppProps {
   initialUsername?: string;
@@ -19,19 +20,27 @@ export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
     setState((prevState) => ({ ...prevState, username }));
   };
 
+
   const listName = 'default'; // TODO: Hardcoded for now.
 
   return (
-    <div className="todo-list">
-      {!state.username ? (
-        <UsernameInput onSubmit={handleUsernameSubmit} />
-      ) : (
-        <>
-          <span>Welcome, {state.username}.</span>
-          <h2>Todo List: {listName}</h2>
-          <TodoList listName={listName}/>
-        </>
-      )}
+    <div className="phaedra-app">
+      <div className="top-bar">
+        <span className="title">Phaedra task management</span>
+        {state.username && (
+          <div className="user-info">
+            <span className="username">{state.username}</span>
+            <span className="profile-icon">👤</span>
+          </div>
+        )}
+      </div>
+      <div className="content">
+        {!state.username ? (
+          <UsernameInput onSubmit={handleUsernameSubmit} />
+        ) : (
+          <TodoList listName={listName} />
+        )}
+      </div>
     </div>
   );
 };

@@ -1,0 +1,37 @@
+.phaedra-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+}
+
+.title {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.username {
+  margin-right: 10px;
+}
+
+.profile-icon {
+  font-size: 1.5em;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
