@@ -7,7 +7,8 @@ module.exports = {
     "^.+\\.tsx?$": [ "ts-jest", { tsconfig: "tsconfig.json", diagnostics: false } ]
   },
   moduleNameMapper: {
-    "^uuid$": "uuid" 
+    "^uuid$": "uuid",
+    '\\.(css|less|scss|sass)$': '<rootDir>/src/components/styleMock.ts'
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"]
 };

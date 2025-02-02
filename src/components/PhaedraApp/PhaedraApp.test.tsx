@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { PhaedraApp } from './PhaedraApp';
 
-jest.mock('./TodoList', () => ({
+jest.mock('../TodoList/TodoList', () => ({
   TodoList: () => <div data-testid="todo-list">Mocked TodoList</div>,
 }));
 
