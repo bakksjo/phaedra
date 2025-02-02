@@ -19,5 +19,47 @@
     "lastModifiedTime": "2025-01-02T18:09:00.000Z",
     "state": "DONE",
     "title": "Extract initial task data to a json file"
+  },
+  {
+    "createdByUser": "backsea",
+    "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa58",
+    "lastModifiedTime": "2025-01-02T18:09:00.000Z",
+    "state": "TODO",
+    "title": "Ability to listen for server updates"
+  },
+  {
+    "createdByUser": "backsea",
+    "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa59",
+    "lastModifiedTime": "2025-01-02T18:09:00.000Z",
+    "state": "TODO",
+    "title": "ETAGS support"
+  },
+  {
+    "createdByUser": "backsea",
+    "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa60",
+    "lastModifiedTime": "2025-01-02T18:09:00.000Z",
+    "state": "TODO",
+    "title": "View conflict resolution"
+  },
+  {
+    "createdByUser": "backsea",
+    "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa61",
+    "lastModifiedTime": "2025-01-02T18:09:00.000Z",
+    "state": "TODO",
+    "title": "Create new TODOs"
+  },
+  {
+    "createdByUser": "backsea",
+    "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa62",
+    "lastModifiedTime": "2025-01-02T18:09:00.000Z",
+    "state": "TODO",
+    "title": "Select list by dropdown"
+  },
+  {
+    "createdByUser": "backsea",
+    "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa63",
+    "lastModifiedTime": "2025-01-02T18:09:00.000Z",
+    "state": "TODO",
+    "title": "Edit TODOS"
   }
 ]
