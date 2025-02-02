@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { PhaedraApp } from '../components/PhaedraApp';
+import { PhaedraApp } from '../components/PhaedraApp/PhaedraApp';
 
 const DOM_ENTRY_POINT_ID = 'phaedra-app';
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { TodoList } from './TodoList';
-import { UsernameInput } from './UsernameInput';
+import { TodoList } from '../TodoList/TodoList';
+import { UsernameInput } from '../UsernameInput/UsernameInput';
 import './PhaedraApp.css';
 
 interface IPhaedraAppProps {

@@ -1,8 +1,8 @@
 import { act } from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { TodoList } from './TodoList';
-import { FetchTodosResponse } from '../phaedra.types';
+import { TodoList } from './TodoList'
+import { FetchTodosResponse } from '../../phaedra.types';
 import { v4 as uuidv4 } from 'uuid';
 
 const mockTodos: FetchTodosResponse = [
