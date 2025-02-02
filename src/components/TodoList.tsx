@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FetchTodosResponse, fetchTodosResponseSchema, TodoItem } from '../phaedraSchemas';
+import { fetchTodosResponseSchema } from '../phaedra-schemas';
+import { FetchTodosResponse, TodoItem } from '../phaedra.types';
 import { TodoCard } from './TodoCard';
 
 const fetchTodos = async (url: string): Promise<FetchTodosResponse> => {

@@ -4,13 +4,10 @@ module.exports = {
   verbose: true,
   collectCoverage: false,
   transform: {
-    "^.+\\.tsx?$": "ts-jest"
+    "^.+\\.tsx?$": [ "ts-jest", { tsconfig: "tsconfig.json", diagnostics: false } ]
   },
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  globals: {
-    "ts-jest": {
-      tsconfig: "tsconfig.json",
-      diagnostics: false
-    }
-  }
+  moduleNameMapper: {
+    "^uuid$": "uuid" 
+  },
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"]
 };

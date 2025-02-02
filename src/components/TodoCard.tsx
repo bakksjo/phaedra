@@ -1,4 +1,4 @@
-import { TodoItem } from '../phaedraSchemas';
+import { TodoItem } from '../phaedra.types';
 
 interface TodoCardProps {
   todo: TodoItem;

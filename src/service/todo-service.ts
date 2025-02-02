@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
-import { todoSchema, TodoItem } from '../phaedraSchemas';
+import { todoSchema } from '../phaedra-schemas';
+import { TodoItem } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { ITodoStore } from '../store/todo-store';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';

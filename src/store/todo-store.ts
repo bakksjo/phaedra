@@ -1,4 +1,4 @@
-import { TodoItem } from "../phaedraSchemas";
+import { TodoItem } from "../phaedra.types";
 
 export interface ITodoStore {
   add(listName: string, todo: TodoItem): void;

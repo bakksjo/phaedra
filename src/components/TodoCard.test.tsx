@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TodoCard } from './TodoCard';
-import { TodoItem } from '../phaedraSchemas';
+import { TodoItem } from '../phaedra.types';
 
 const mockTodo: TodoItem = {
   createdByUser: 'user1',

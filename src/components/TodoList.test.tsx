@@ -2,19 +2,20 @@ import { act } from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TodoList } from './TodoList';
-import { FetchTodosResponse } from '../phaedraSchemas';
+import { FetchTodosResponse } from '../phaedra.types';
+import { v4 as uuidv4 } from 'uuid';
 
 const mockTodos: FetchTodosResponse = [
   {
     createdByUser: 'user1',
-    id: '1',
+    id: uuidv4(),
     lastModifiedTime: new Date().toISOString(),
     state: 'TODO',
     title: 'Test TODO 1',
   },
   {
     createdByUser: 'user2',
-    id: '2',
+    id: uuidv4(),
     lastModifiedTime: new Date().toISOString(),
     state: 'DONE',
     title: 'Test TODO 2',
@@ -33,7 +34,7 @@ describe('TodoList', () => {
     jest.clearAllMocks();
   });
 
-  test('the loading screen is shown initially', async () => {
+  test('the loading screen is shown initially', () => {
     render(<TodoList />);
 
     expect(screen.queryByText('Loading...')).toBeInTheDocument();
@@ -48,7 +49,6 @@ describe('TodoList', () => {
   
     expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    screen.debug();
     expect(screen.queryByText(/Test TODO 1/)).toBeInTheDocument();
     expect(screen.queryByText(/Test TODO 2/)).toBeInTheDocument();
   });

@@ -1,4 +1,4 @@
-import { TodoItem } from '../phaedraSchemas';
+import { TodoItem } from '../phaedra.types';
 import { ITodoStore } from './todo-store';
 import { EphemeralTodoStore } from './ephemeral-todo-store';
 
