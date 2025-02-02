@@ -1,0 +1,23 @@
+[
+  {
+    "createdByUser": "backsea",
+    "id": "5ec1e75e-c1e7-5ec1-e75e-c1e75ec1e75e",
+    "lastModifiedTime": "2025-01-02T18:09:00.000Z",
+    "state": "TODO",
+    "title": "Drag'n'drop functionality"
+  },
+  {
+    "createdByUser": "backsea",
+    "id": "ba5eba11-ba5e-ba11-ba5e-ba5eba11ba5e",
+    "lastModifiedTime": "2025-01-02T18:09:00.000Z",
+    "state": "ONGOING",
+    "title": "Make the app pretty"
+  },
+  {
+    "createdByUser": "backsea",
+    "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa57",
+    "lastModifiedTime": "2025-01-02T18:09:00.000Z",
+    "state": "DONE",
+    "title": "Extract initial task data to a json file"
+  }
+]

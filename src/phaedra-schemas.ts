@@ -8,4 +8,6 @@ export const todoSchema = z.object({
   title: z.string(),
 });
 
-export const fetchTodosResponseSchema = z.array(todoSchema);
+export const listOfTodosSchema = z.array(todoSchema);
+
+export const fetchTodosResponseSchema = listOfTodosSchema;

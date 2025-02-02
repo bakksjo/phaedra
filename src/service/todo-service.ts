@@ -1,40 +1,21 @@
 import express, { Request, Response } from 'express';
-import { todoSchema } from '../phaedra-schemas';
+import { todoSchema, listOfTodosSchema } from '../phaedra-schemas';
 import { TodoItem } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { ITodoStore } from '../store/todo-store';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
-import { v4 as uuidv4 } from 'uuid';
+import jsonTodos from './todos.json';
 
 const LIST_NAME = 'default'; // Hardcoded for now (TODO).
 
 const createAndInitializeStore = (): ITodoStore => {
-  const preExistingTodos: TodoItem[] = [
-    {
-      createdByUser: 'user1',
-      id: uuidv4(),
-      lastModifiedTime: new Date().toISOString(),
-      state: 'TODO',
-      title: 'delectus aut autem',
-    },
-    {
-      createdByUser: 'user1',
-      id: uuidv4(),
-      lastModifiedTime: new Date().toISOString(),
-      state: 'ONGOING',
-      title: 'quis ut nam facilis et officia qui',
-    },
-    {
-      createdByUser: 'user1',
-      id: uuidv4(),
-      lastModifiedTime: new Date().toISOString(),
-      state: 'DONE',
-      title: 'fugiat veniam minus',
-    },
-  ];
-  
   const store: ITodoStore = new EphemeralTodoStore();
-  preExistingTodos.forEach(todo => store.add(LIST_NAME, todo));
+  try {
+    const preExistingTodos = listOfTodosSchema.parse(jsonTodos);
+    preExistingTodos.forEach(todo => store.add(LIST_NAME, todo));
+  } catch (err) {
+    console.error('Error parsing pre-existing todos:', err);
+  }
   return store;
 }
 
