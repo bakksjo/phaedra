@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StoredTodoItem, TodoState } from '../../phaedra.types';
+import { StoredTodoItem, TodoItemData, TodoState } from '../../phaedra.types';
 import './TodoCard.css';
 
 interface TodoCardProps {
@@ -7,15 +7,15 @@ interface TodoCardProps {
   todo: StoredTodoItem;
 }
 
-type PendingUpdateState = {
-  previousTodo: StoredTodoItem;
-} | undefined;
+const availableStates: TodoState[] = ['TODO', 'ONGOING', 'DONE'];
 
 export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
   const [todo, setTodo] = useState(initialTodo);
-  const [isEditing, setIsEditing] = useState(false);
-  const [pendingUpdate, setPendingUpdate] = useState<PendingUpdateState>(undefined);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditingState, setIsEditingState] = useState(false);
+  const [isUpdatePending, setIsUpdatePending] = useState(false);
   const [newTitle, setNewTitle] = useState(todo.data.title);
+  const [newState, setNewState] = useState(todo.data.state);
 
   const getStateIcon = (state: TodoState): string => {
     switch (state) {
@@ -29,22 +29,26 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
   };
 
   const handleTitleClick = () => {
-    if (pendingUpdate) return;
+    if (isUpdatePending) return;
+    setIsEditingTitle(true);
+  };
 
-    setIsEditing(true);
+  const handleStateClick = () => {
+    if (isUpdatePending) return;
+    setIsEditingState(true);
   };
 
   const handleTitleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTitle(e.target.value);
   };
 
-  const submitTitleInputChange = async () => {
-    setIsEditing(false);
-    if (newTitle === todo.data.title) {
-      return;
-    }
-    setPendingUpdate({ previousTodo: todo });
-    const updatedTodo = { ...todo.data, title: newTitle };
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setNewState(e.target.value as TodoState);
+  };
+
+  const submitChange = async (updatedTodo: TodoItemData) => {
+    const previousTodo = todo;
+    setIsUpdatePending(true);
     const temporaryPresumedMeta = { ...todo.meta, revision: todo.meta.revision + 1, lastModifiedTime: new Date().toISOString() };
     const localTodoWhilePendingUpdate = { data: updatedTodo, meta: temporaryPresumedMeta };
     setTodo(localTodoWhilePendingUpdate);
@@ -60,24 +64,42 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
           body: JSON.stringify(updatedTodo),
         }
       );
-      if (!response.ok) {
+      if (response.status === 409) {
+        console.log('Conflict detected, showing latest');
+      } else if (!response.ok) {
         throw new Error("Failed to update TODO item");
       }
       const updatedTodoItem: StoredTodoItem = await response.json();
       setTodo(updatedTodoItem);
     } catch (error) {
       console.error(error);
-      if (pendingUpdate) {
-        // The update failed, so revert the UI to the previous state.
-        setTodo(pendingUpdate.previousTodo);
-      }
+      // The update failed, so revert the UI to the previous state.
+      setTodo(previousTodo);
     } finally {
-      setPendingUpdate(undefined);
+      setIsUpdatePending(false);
     }
   };
 
+  const submitTitleInputChange = async () => {
+    setIsEditingTitle(false);
+    if (newTitle === todo.data.title) {
+      return;
+    }
+    const updatedTodo = { ...todo.data, title: newTitle };
+    await submitChange(updatedTodo);
+  };
+
+  const submitStateChange = async () => {
+    setIsEditingState(false);
+    if (newState === todo.data.state) {
+      return;
+    }
+    const updatedTodo = { ...todo.data, state: newState };
+    await submitChange(updatedTodo);
+  };
+
   const cancelEditing = () => {
-    setIsEditing(false);
+    setIsEditingTitle(false);
     setNewTitle(todo.data.title);
   }
 
@@ -90,9 +112,9 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
   };
 
   return (
-    <div className={`todo-card ${pendingUpdate ? 'pending-update' : ''}`}>
+    <div className={`todo-card ${isUpdatePending ? 'pending-update' : ''}`}>
       <div className="todo-card-header">
-        {isEditing ? (
+        {isEditingTitle ? (
           <input
             type="text"
             value={newTitle}
@@ -100,7 +122,7 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
             onKeyDown={handleKeyPress}
             onBlur={cancelEditing}
             autoFocus
-            disabled={!!pendingUpdate}
+            disabled={!!isUpdatePending}
             className="todo-card-input"
           />
         ) : (
@@ -109,15 +131,37 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
           </span>
         )}
         <div>
-          <span className="todo-card-state-text">{todo.data.state}</span>
-          <span className="todo-card-state-icon">{getStateIcon(todo.data.state)}</span>
+          {isEditingState ? (
+            <select
+              value={newState}
+              onChange={handleStateChange}
+              onBlur={submitStateChange}
+              disabled={!!isUpdatePending}
+              className="todo-card-select"
+            >
+              {availableStates.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <>
+              <span className="todo-card-state-text" onClick={handleStateClick}>
+                {todo.data.state}
+              </span>
+              <span className="todo-card-state-icon" onClick={handleStateClick}>
+                {getStateIcon(todo.data.state)}
+              </span>
+            </>
+          )}
         </div>
       </div>
       <div className="todo-card-footer">
         <span className="todo-card-created-by">Created by: {todo.data.createdByUser}</span>
         <span className="todo-card-time">Last Modified: {new Date(todo.meta.lastModifiedTime).toLocaleString()}</span>
       </div>
-      {pendingUpdate && <div className="spinner-container"><div className="spinner"></div></div>}
+      {isUpdatePending && <div className="spinner-container"><div className="spinner"></div></div>}
     </div>
   );
 };
