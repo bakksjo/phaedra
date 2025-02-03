@@ -33,9 +33,9 @@ describe('EphemeralTodoStore', () => {
     expect(res.result).toEqual('created');
     if (res.result !== 'created') throw unreachableButRequiredForNarrowing();
 
-    expect(res.metadata.id).toBeDefined();
+    expect(res.todo.meta.id).toBeDefined();
 
-    const storedTodo = sut.getById(listName, res.metadata.id);
+    const storedTodo = sut.getById(listName, res.todo.meta.id);
     expect(storedTodo).toBeDefined();
     if (!storedTodo) throw unreachableButRequiredForNarrowing();
 
@@ -69,17 +69,17 @@ describe('EphemeralTodoStore', () => {
     if (res1.result !== 'created') throw unreachableButRequiredForNarrowing();
 
     const updatedTodo: TodoItemData = { ...todo, title: 'Updated TODO', state: 'DONE' };
-    sut.update(listName, res1.metadata.id, updatedTodo, res1.metadata.revision);
+    sut.update(listName, res1.todo.meta.id, updatedTodo, res1.todo.meta.revision);
 
-    const storedTodo = sut.getById(listName, res1.metadata.id);
+    const storedTodo = sut.getById(listName, res1.todo.meta.id);
     expect(storedTodo).toBeDefined();
     if (!storedTodo) throw unreachableButRequiredForNarrowing();
 
     expect(storedTodo.data).toEqual(updatedTodo);
-    expect(storedTodo.meta.revision).toBeGreaterThan(res1.metadata.revision);
+    expect(storedTodo.meta.revision).toBeGreaterThan(res1.todo.meta.revision);
     expect(new Date(storedTodo.meta.lastModifiedTime).getTime())
-      .toBeGreaterThanOrEqual(new Date(res1.metadata.lastModifiedTime).getTime());
-    expect(storedTodo.meta.id).toEqual(res1.metadata.id);
+      .toBeGreaterThanOrEqual(new Date(res1.todo.meta.lastModifiedTime).getTime());
+    expect(storedTodo.meta.id).toEqual(res1.todo.meta.id);
 
     const todos = sut.list(listName);
     expect(todos).toHaveLength(1);
@@ -90,9 +90,9 @@ describe('EphemeralTodoStore', () => {
     const res1 = sut.create(listName, todo);
     if (res1.result !== 'created') return;
 
-    sut.delete(listName, res1.metadata.id, res1.metadata.revision);
+    sut.delete(listName, res1.todo.meta.id, res1.todo.meta.revision);
 
-    const storedTodo = sut.getById(listName, res1.metadata.id);
+    const storedTodo = sut.getById(listName, res1.todo.meta.id);
     expect(storedTodo).toBeUndefined();
 
     const todos = sut.list(listName);

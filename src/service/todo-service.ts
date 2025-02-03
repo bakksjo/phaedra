@@ -1,10 +1,11 @@
 import express, { Request, Response } from 'express';
-import { zCreateTodoRequest, zStoredTodoItem, zTodoArray } from '../phaedra-schemas';
-import { HttpErrorBody, StoredTodoItem, StoredTodoItemMetadata, TodoItemData } from '../phaedra.types';
+import { zCreateTodoRequest, zStoredTodoItem, zTodoArray, zUpdateTodoRequest } from '../phaedra-schemas';
+import { HttpErrorBody as ErrorBody, StoredTodoItem, StoredTodoItemMetadata, TodoItemData } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
-import { ITodoStore } from '../store/todo-store';
+import { CreateTodoResult, ITodoStore, UpdateTodoResult } from '../store/todo-store';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
 import jsonTodos from './todos.json';
+import { validateUpdate } from './validation';
 
 const LIST_NAME = 'default'; // Hardcoded for now (TODO).
 
@@ -32,7 +33,7 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     res.send(lists);
   });
 
-  apiServer.get('/todo-lists/:listName/todos', (req: Request, res: Response<StoredTodoItem[] | HttpErrorBody>) => {
+  apiServer.get('/todo-lists/:listName/todos', (req: Request, res: Response<StoredTodoItem[] | ErrorBody>) => {
     const listName = req.params.listName;
     res.set({
       'Access-Control-Allow-Origin': '*',
@@ -47,7 +48,14 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     res.send(todos);
   });
 
-  apiServer.post('/todo-lists/:listName/todos', (request: Request, response: Response<StoredTodoItemMetadata | HttpErrorBody>) => {
+  apiServer.post('/todo-lists/:listName/todos', (request: Request, response: Response<StoredTodoItem | ErrorBody>) => {
+    const getResponseForCreateOperation = (op: CreateTodoResult): [number, StoredTodoItem | ErrorBody] => {
+      switch (op.result) {
+        case 'created': return [ 201, op.todo];
+        case 'not-found': return [ 404, { message: `${op.missing} not found` }];
+      }
+    }
+
     const listName = request.params.listName;
     const createTodoRequest = zCreateTodoRequest.parse(request.body);
 
@@ -61,18 +69,37 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
       createdByUser: createTodoRequest.creator,
       state: 'TODO',
     };
-    const creation = todoStore.create(listName, newTodo);
-    switch (creation.result) {
-      case 'created':
-        response.status(201).send(creation.metadata);
-        return;
+    const op = todoStore.create(listName, newTodo);
 
-      case 'not-found':
-        response.status(404).send({ message: `List ${listName} not found` });
-        return;
-    }
+    const [ httpStatus, responseBody ] = getResponseForCreateOperation(op);
+    response.status(httpStatus).send(responseBody);
   });
-}
+
+  apiServer.put('/todo-lists/:listName/todos/:todoId', (request: Request, response: Response<StoredTodoItem | ErrorBody>) => {
+    const getResponseForUpdateOperation = (op: UpdateTodoResult<string>): [number, StoredTodoItem | ErrorBody] => {
+      switch (op.result) {
+        case 'updated': return [ 200, op.todo];
+        case 'not-found': return [ 404, { message: `${op.missing} not found` }];
+        case 'conflict': return [ 409, op.currentItem ];
+        case 'validation-failure': return [ 400, { message: op.validationError }];
+      }
+    }
+
+    const listName = request.params.listName;
+    const todoId = request.params.todoId;
+    const revision = parseInt(request.headers['if-match'] as string, 10); // TODO: Ensure client errors don't become server errors.
+    const updatedTodo = zUpdateTodoRequest.parse(request.body);
+
+    response.set({
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    });
+
+    const op = todoStore.update(listName, todoId, updatedTodo, revision, validateUpdate);
+
+    const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
+    response.status(httpStatus).send(responseBody);
+  });}
 
 export function startTodoService(port: number) {
   const app = express();

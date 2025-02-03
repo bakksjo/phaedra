@@ -1,6 +1,6 @@
 import { Revision, StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoItemId } from '../phaedra.types';
 import { ILoadableStore } from './loadable-store';
-import { CreateTodoResult, DeleteResult, ITodoStore, UpdateTodoResult } from './todo-store';
+import { CreateTodoResult, DeleteResult, ITodoStore, UpdateTodoResult, UpdateValidationFunction } from './todo-store';
 import { v4 as uuidv4 } from 'uuid';
 
 interface TodoList {
@@ -32,7 +32,7 @@ export class EphemeralTodoStore implements ITodoStore, ILoadableStore {
     };
     this.todoLists[listName].push(storedTodo);
 
-    return { result: 'created', metadata };
+    return { result: 'created', todo: storedTodo };
   }
 
   getById(listName: string, todoId: TodoItemId): StoredTodoItem | undefined {
@@ -45,7 +45,7 @@ export class EphemeralTodoStore implements ITodoStore, ILoadableStore {
     return this.todoLists[listName];
   }
 
-  update(listName: string, todoId: TodoItemId, todo: TodoItemData, revision: Revision): UpdateTodoResult {
+  update<T>(listName: string, todoId: TodoItemId, todo: TodoItemData, revision: Revision, validation?: UpdateValidationFunction<T>): UpdateTodoResult<T> {
     const list = this.todoLists[listName];
     if (!list) return { result: 'not-found', missing: 'list' };
 
@@ -54,6 +54,11 @@ export class EphemeralTodoStore implements ITodoStore, ILoadableStore {
 
     const currentlyStoredItem = list[index];
     if (currentlyStoredItem.meta.revision !== revision) return { result: 'conflict', currentItem: currentlyStoredItem };
+
+    if (validation) {
+      const validationError = validation(currentlyStoredItem.data, todo);
+      if (validationError) return { result: 'validation-failure', validationError };
+    }
 
     const newMetadata = {
       id: currentlyStoredItem.meta.id,
@@ -66,7 +71,7 @@ export class EphemeralTodoStore implements ITodoStore, ILoadableStore {
     };
     list[index] = updatedItem;
 
-    return { result: 'updated', metadata: newMetadata };
+    return { result: 'updated', todo: updatedItem };
   }
 
   delete(listName: string, todoId: TodoItemId, revision: Revision): DeleteResult {

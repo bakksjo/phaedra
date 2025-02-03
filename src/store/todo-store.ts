@@ -2,7 +2,14 @@ import { Revision, StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoIte
 
 export type UpdateTodoSuccess = {
   result: 'updated',
-  metadata: StoredTodoItemMetadata
+  todo: StoredTodoItem
+};
+
+export type UpdateValidationFunction<T> = (currentItem: TodoItemData, proposedItem: TodoItemData) => T | undefined;
+
+export type UpdateTodoValidationFailure<T> = {
+  result: 'validation-failure',
+  validationError: T
 };
 
 export type ModificationConflict = {
@@ -15,7 +22,7 @@ export type NotFound = {
   missing: 'list' | 'todo'
 };
 
-export type UpdateTodoResult = UpdateTodoSuccess | ModificationConflict | NotFound;
+export type UpdateTodoResult<T> = UpdateTodoSuccess | ModificationConflict | NotFound | UpdateTodoValidationFailure<T>;
 
 export type DeleteSuccess = {
   result: 'deleted'
@@ -25,7 +32,7 @@ export type DeleteResult = DeleteSuccess | ModificationConflict | NotFound;
 
 export type CreateTodoSuccess = {
   result: 'created',
-  metadata: StoredTodoItemMetadata
+  todo: StoredTodoItem
 }
 
 export type CreateTodoResult = CreateTodoSuccess | NotFound;
@@ -38,6 +45,6 @@ export interface ITodoStore {
   create(listName: string, todo: TodoItemData): CreateTodoResult;
   getById(listName: string, todoId: TodoItemId): StoredTodoItem | undefined; // TODO: Consider NotFound instead of undefined
   list(listName: string): StoredTodoItem[] | undefined; // TODO: Consider NotFound instead of undefined
-  update(listName: string, todoId: TodoItemId, todo: TodoItemData, revision: Revision): UpdateTodoResult;
+  update<T>(listName: string, todoId: TodoItemId, todo: TodoItemData, revision: Revision, validation?: UpdateValidationFunction<T>): UpdateTodoResult<T>;
   delete(listName: string, todoId: TodoItemId, revision: Revision): DeleteResult;
 }
