@@ -7,7 +7,7 @@ export const zRevision = z.number().int().positive();
 export const zTodoItemState = z.enum(['TODO', 'ONGOING', 'DONE']);
 export const zTodoItemTitle = z.string().trim().nonempty();
 
-export const zHttpErrorBody = z.object({
+export const zErrorBody = z.object({
   message: z.string(),
 });
 

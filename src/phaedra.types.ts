@@ -8,7 +8,7 @@ import {
   zTodoItemId,
   zRevision,
   zCreateTodoRequest,
-  zHttpErrorBody
+  zErrorBody
 } from './phaedra-schemas';
 
 export type TodoItemId = z.infer<typeof zTodoItemId>;
@@ -18,6 +18,6 @@ export type StoredTodoItemMetadata = z.infer<typeof zStoredTodoItemMetadata>;
 export type StoredTodoItem = z.infer<typeof zStoredTodoItem>;
 export type Revision = z.infer<typeof zRevision>;
 
-export type HttpErrorBody = z.infer<typeof zHttpErrorBody>;
+export type ErrorBody = z.infer<typeof zErrorBody>;
 export type CreateTodoRequest = z.infer<typeof zCreateTodoRequest>;
 export type FetchTodosResponse = z.infer<typeof zFetchTodosResponse>;

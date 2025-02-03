@@ -1,4 +1,4 @@
-import { Revision, StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoItemId } from "../phaedra.types";
+import { Revision, StoredTodoItem, TodoItemData, TodoItemId } from "../phaedra.types";
 
 export type UpdateTodoSuccess = {
   result: 'updated',

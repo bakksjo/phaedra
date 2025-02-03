@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { zCreateTodoRequest, zStoredTodoItem, zTodoArray, zUpdateTodoRequest } from '../phaedra-schemas';
-import { HttpErrorBody as ErrorBody, StoredTodoItem, StoredTodoItemMetadata, TodoItemData } from '../phaedra.types';
+import { zCreateTodoRequest, zRevision, zTodoArray, zUpdateTodoRequest } from '../phaedra-schemas';
+import { ErrorBody, StoredTodoItem, Revision, TodoItemData } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { CreateTodoResult, ITodoStore, UpdateTodoResult } from '../store/todo-store';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
@@ -9,6 +9,7 @@ import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
 
 const LIST_NAME = 'default'; // Hardcoded for now (TODO).
+const IF_MATCH_HEADER_DATA_TYPE = () => { const revisionValue: Revision = 1; return typeof(revisionValue); };
 
 const createAndInitializeStore = (): ITodoStore => {
   const store = new EphemeralTodoStore();
@@ -76,14 +77,21 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
     const listName = request.params.listName;
     const todoId = request.params.todoId;
-    const revision = parseInt(request.headers['if-match'] as string, 10); // TODO: Ensure client errors don't become server errors.
+    let revision: Revision;
+    try {
+      revision = zRevision.parse(request.headers['if-match']);
+    } catch (err) {
+      response.status(400).send({ message: `If-Match: <${IF_MATCH_HEADER_DATA_TYPE}> header required for update` });
+      return;
+    }
     const updatedTodo = zUpdateTodoRequest.parse(request.body);
 
     const op = todoStore.update(listName, todoId, revision, updatedTodo, validateUpdate);
 
     const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
     response.status(httpStatus).send(responseBody);
-  });}
+  })
+;}
 
 export function startTodoService(port: number) {
   const app = express();
