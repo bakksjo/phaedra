@@ -95,7 +95,7 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
       'Content-Type': 'application/json',
     });
 
-    const op = todoStore.update(listName, todoId, updatedTodo, revision, validateUpdate);
+    const op = todoStore.update(listName, todoId, revision, updatedTodo, validateUpdate);
 
     const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
     response.status(httpStatus).send(responseBody);

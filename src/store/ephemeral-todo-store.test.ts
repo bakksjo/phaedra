@@ -76,7 +76,7 @@ describe('EphemeralTodoStore', () => {
     if (res1.result !== 'created') throw unreachableButRequiredForNarrowing();
 
     const updatedTodo: TodoItemData = { ...todo, title: 'Updated TODO', state: 'DONE' };
-    sut.update(listName, res1.todo.meta.id, updatedTodo, res1.todo.meta.revision);
+    sut.update(listName, res1.todo.meta.id, res1.todo.meta.revision, updatedTodo);
 
     const storedTodo = sut.getById(listName, res1.todo.meta.id);
     expect(storedTodo).toBeDefined();
@@ -154,7 +154,7 @@ describe('EphemeralTodoStore', () => {
     const updatedTodo: TodoItemData = { ...todo, title: 'Updated TODO' };
     const wrongRevision = res1.todo.meta.revision - 1;
 
-    const res2 = sut.update(listName, res1.todo.meta.id, updatedTodo, wrongRevision);
+    const res2 = sut.update(listName, res1.todo.meta.id, wrongRevision, updatedTodo);
     expect(res2.result).toBe('conflict');
     if (res2.result !== 'conflict') throw unreachableButRequiredForNarrowing();
     expect(res2.currentItem).toEqual(res1.todo);
@@ -171,7 +171,7 @@ describe('EphemeralTodoStore', () => {
 
     const validUpdate: TodoItemData = { ...todo, title: todo.title + ' suffix' };
 
-    const res2 = sut.update(listName, res1.todo.meta.id, validUpdate, res1.todo.meta.revision, titleAppendOnlyValidator);
+    const res2 = sut.update(listName, res1.todo.meta.id, res1.todo.meta.revision, validUpdate, titleAppendOnlyValidator);
     expect(res2.result).toBe('updated');
     if (res2.result !== 'updated') throw unreachableButRequiredForNarrowing();
     
@@ -186,7 +186,7 @@ describe('EphemeralTodoStore', () => {
 
     const invalidUpdate: TodoItemData = { ...todo, title: 'An entirely different title' };
 
-    const res2 = sut.update(listName, res1.todo.meta.id, invalidUpdate, res1.todo.meta.revision, titleAppendOnlyValidator);
+    const res2 = sut.update(listName, res1.todo.meta.id, res1.todo.meta.revision, invalidUpdate, titleAppendOnlyValidator);
     expect(res2.result).toBe('validation-failure');
     if (res2.result !== 'validation-failure') throw unreachableButRequiredForNarrowing();
     expect(res2.validationError).toEqual(VALIDATION_ERROR);

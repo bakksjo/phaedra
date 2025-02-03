@@ -45,6 +45,6 @@ export interface ITodoStore {
   create(listName: string, todo: TodoItemData): CreateTodoResult;
   getById(listName: string, todoId: TodoItemId): StoredTodoItem | undefined; // TODO: Consider NotFound instead of undefined
   list(listName: string): StoredTodoItem[] | undefined; // TODO: Consider NotFound instead of undefined
-  update<T>(listName: string, todoId: TodoItemId, todo: TodoItemData, revision: Revision, validation?: UpdateValidationFunction<T>): UpdateTodoResult<T>;
+  update<T>(listName: string, todoId: TodoItemId, revision: Revision, todo: TodoItemData, validation?: UpdateValidationFunction<T>): UpdateTodoResult<T>; // TODO: Swap todo and revision parameters.
   delete(listName: string, todoId: TodoItemId, revision: Revision): DeleteResult;
 }

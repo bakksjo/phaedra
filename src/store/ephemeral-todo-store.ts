@@ -45,7 +45,7 @@ export class EphemeralTodoStore implements ITodoStore, ILoadableStore {
     return this.todoLists[listName];
   }
 
-  update<T>(listName: string, todoId: TodoItemId, todo: TodoItemData, revision: Revision, validation?: UpdateValidationFunction<T>): UpdateTodoResult<T> {
+  update<T>(listName: string, todoId: TodoItemId, revision: Revision, todo: TodoItemData, validation?: UpdateValidationFunction<T>): UpdateTodoResult<T> {
     const list = this.todoLists[listName];
     if (!list) return { result: 'not-found', missing: 'list' };
 
