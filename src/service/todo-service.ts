@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import { zCreateTodoRequest, zStoredTodoItem, zTodoArray, zUpdateTodoRequest } from '../phaedra-schemas';
 import { HttpErrorBody as ErrorBody, StoredTodoItem, StoredTodoItemMetadata, TodoItemData } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
@@ -23,10 +24,10 @@ const createAndInitializeStore = (): ITodoStore => {
 function configureServiceEndpoints(apiServer: express.Application, todoStore: ITodoStore) {
   apiServer.use(express.json());
   apiServer.use(zodErrorHandler);
+  apiServer.use(cors());
 
   apiServer.get('/todo-lists', (req: Request, res: Response) => {
     res.set({
-      'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     });
     const lists = todoStore.getLists();
@@ -36,7 +37,6 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
   apiServer.get('/todo-lists/:listName/todos', (req: Request, res: Response<StoredTodoItem[] | ErrorBody>) => {
     const listName = req.params.listName;
     res.set({
-      'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     });
     const todos = todoStore.list(listName);
@@ -60,7 +60,6 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     const createTodoRequest = zCreateTodoRequest.parse(request.body);
 
     response.set({
-      'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     });
 
@@ -91,7 +90,6 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     const updatedTodo = zUpdateTodoRequest.parse(request.body);
 
     response.set({
-      'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     });
 
