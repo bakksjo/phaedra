@@ -7,18 +7,28 @@ import { v4 as uuidv4 } from 'uuid';
 
 const mockTodos: FetchTodosResponse = [
   {
-    createdByUser: 'user1',
-    id: uuidv4(),
-    lastModifiedTime: new Date().toISOString(),
-    state: 'TODO',
-    title: 'Test TODO 1',
+    data: {
+      title: 'Test TODO 1',
+      state: 'TODO',
+      createdByUser: 'user1',
+    },
+    meta: {
+      id: uuidv4(),
+      lastModifiedTime: new Date().toISOString(),
+      revision: 1,
+    }
   },
   {
-    createdByUser: 'user2',
-    id: uuidv4(),
-    lastModifiedTime: new Date().toISOString(),
-    state: 'DONE',
-    title: 'Test TODO 2',
+    data: {
+      title: 'Test TODO 2',
+      state: 'DONE',
+      createdByUser: 'user2',
+    },
+    meta: {
+      id: uuidv4(),
+      lastModifiedTime: new Date().toISOString(),
+      revision: 3,
+    }
   },
 ];
 

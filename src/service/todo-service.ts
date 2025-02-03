@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-import { todoSchema, listOfTodosSchema } from '../phaedra-schemas';
-import { TodoItem } from '../phaedra.types';
+import { zCreateTodoRequest, zStoredTodoItem, zTodoArray } from '../phaedra-schemas';
+import { HttpErrorBody, StoredTodoItem, StoredTodoItemMetadata, TodoItemData } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { ITodoStore } from '../store/todo-store';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
@@ -9,10 +9,10 @@ import jsonTodos from './todos.json';
 const LIST_NAME = 'default'; // Hardcoded for now (TODO).
 
 const createAndInitializeStore = (): ITodoStore => {
-  const store: ITodoStore = new EphemeralTodoStore();
+  const store = new EphemeralTodoStore();
   try {
-    const preExistingTodos = listOfTodosSchema.parse(jsonTodos);
-    preExistingTodos.forEach(todo => store.add(LIST_NAME, todo));
+    const preExistingTodos = zTodoArray.parse(jsonTodos);
+    store.load(LIST_NAME, preExistingTodos);
   } catch (err) {
     console.error('Error parsing pre-existing todos:', err);
   }
@@ -32,25 +32,45 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     res.send(lists);
   });
 
-  apiServer.get('/todo-lists/:listName/todos', (req: Request, res: Response) => {
+  apiServer.get('/todo-lists/:listName/todos', (req: Request, res: Response<StoredTodoItem[] | HttpErrorBody>) => {
     const listName = req.params.listName;
     res.set({
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     });
     const todos = todoStore.list(listName);
+    if (!todos) {
+      res.status(404).send({ message: `List "${listName}" not found` });
+      return
+    }
+
     res.send(todos);
   });
 
-  apiServer.post('/todo-lists/:listName/todos', (req: Request, res: Response) => {
-    const listName = req.params.listName;
-    const newTodo: TodoItem = todoSchema.parse(req.body);
-    todoStore.add(listName, newTodo);
-    res.set({
+  apiServer.post('/todo-lists/:listName/todos', (request: Request, response: Response<StoredTodoItemMetadata | HttpErrorBody>) => {
+    const listName = request.params.listName;
+    const createTodoRequest = zCreateTodoRequest.parse(request.body);
+
+    response.set({
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     });
-    res.status(201).send(newTodo);
+
+    const newTodo: TodoItemData = {
+      title: createTodoRequest.title,
+      createdByUser: createTodoRequest.creator,
+      state: 'TODO',
+    };
+    const creation = todoStore.create(listName, newTodo);
+    switch (creation.result) {
+      case 'created':
+        response.status(201).send(creation.metadata);
+        return;
+
+      case 'not-found':
+        response.status(404).send({ message: `List ${listName} not found` });
+        return;
+    }
   });
 }
 

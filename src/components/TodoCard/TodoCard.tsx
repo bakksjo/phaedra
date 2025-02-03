@@ -1,8 +1,8 @@
-import { TodoItem, TodoState } from '../../phaedra.types';
+import { StoredTodoItem, TodoState } from '../../phaedra.types';
 import './TodoCard.css';
 
 interface TodoCardProps {
-  todo: TodoItem;
+  todo: StoredTodoItem;
 }
 
 export const TodoCard = ({ todo }: TodoCardProps) => {
@@ -20,15 +20,15 @@ export const TodoCard = ({ todo }: TodoCardProps) => {
   return (
     <div className="todo-card">
       <div className="todo-card-header">
-        <span className="todo-card-title">{todo.title}</span>
+        <span className="todo-card-title">{todo.data.title}</span>
         <div>
-          <span className="todo-card-state-text">{todo.state}</span>
-          <span className="todo-card-state-icon">{getStateIcon(todo.state)}</span>
+          <span className="todo-card-state-text">{todo.data.state}</span>
+          <span className="todo-card-state-icon">{getStateIcon(todo.data.state)}</span>
         </div>
       </div>
       <div className="todo-card-footer">
-        <span className="todo-card-created-by">Created by: {todo.createdByUser}</span>
-        <span className="todo-card-time">Last Modified: {new Date(todo.lastModifiedTime).toLocaleString()}</span>
+        <span className="todo-card-created-by">Created by: {todo.data.createdByUser}</span>
+        <span className="todo-card-time">Last Modified: {new Date(todo.meta.lastModifiedTime).toLocaleString()}</span>
       </div>
     </div>
   );

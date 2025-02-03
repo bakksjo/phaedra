@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchTodosResponseSchema } from '../../phaedra-schemas';
-import { FetchTodosResponse, TodoItem } from '../../phaedra.types';
+import { zFetchTodosResponse } from '../../phaedra-schemas';
+import { FetchTodosResponse, StoredTodoItem } from '../../phaedra.types';
 import { TodoCard } from '../TodoCard/TodoCard';
 
 const fetchTodos = async (baseUrl: string, listName: string): Promise<FetchTodosResponse> => {
   const url = `${baseUrl}todo-lists/${listName}/todos`;
   const response = await fetch(url);
   const json = await response.json();
-  return fetchTodosResponseSchema.parse(json);
+  return zFetchTodosResponse.parse(json);
 };
 
 interface ITodoListProps { 
@@ -15,7 +15,7 @@ interface ITodoListProps {
 }
 
 export const TodoList = ({ listName }: ITodoListProps) => {
-  const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [todos, setTodos] = useState<StoredTodoItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const loadTodos = async () => {
@@ -42,7 +42,7 @@ export const TodoList = ({ listName }: ITodoListProps) => {
       ) : (
         <div>
           {todos.map((todo) => (
-            <TodoCard key={todo.id} todo={todo} />
+            <TodoCard key={todo.meta.id} todo={todo} />
           ))}
         </div>
       )}
