@@ -27,18 +27,12 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
   apiServer.use(cors());
 
   apiServer.get('/todo-lists', (req: Request, res: Response) => {
-    res.set({
-      'Content-Type': 'application/json',
-    });
     const lists = todoStore.getLists();
     res.send(lists);
   });
 
   apiServer.get('/todo-lists/:listName/todos', (req: Request, res: Response<StoredTodoItem[] | ErrorBody>) => {
     const listName = req.params.listName;
-    res.set({
-      'Content-Type': 'application/json',
-    });
     const todos = todoStore.list(listName);
     if (!todos) {
       res.status(404).send({ message: `List "${listName}" not found` });
@@ -58,10 +52,6 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
     const listName = request.params.listName;
     const createTodoRequest = zCreateTodoRequest.parse(request.body);
-
-    response.set({
-      'Content-Type': 'application/json',
-    });
 
     const newTodo: TodoItemData = {
       title: createTodoRequest.title,
@@ -88,10 +78,6 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     const todoId = request.params.todoId;
     const revision = parseInt(request.headers['if-match'] as string, 10); // TODO: Ensure client errors don't become server errors.
     const updatedTodo = zUpdateTodoRequest.parse(request.body);
-
-    response.set({
-      'Content-Type': 'application/json',
-    });
 
     const op = todoStore.update(listName, todoId, revision, updatedTodo, validateUpdate);
 
