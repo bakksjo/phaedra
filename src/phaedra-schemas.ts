@@ -7,10 +7,6 @@ export const zRevision = z.number().int().positive();
 export const zTodoItemState = z.enum(['TODO', 'ONGOING', 'DONE']);
 export const zTodoItemTitle = z.string().trim().nonempty();
 
-export const zErrorBody = z.object({
-  message: z.string(),
-});
-
 export const zTodoItemData = z.object({
   state: zTodoItemState,
   title: zTodoItemTitle,
@@ -31,7 +27,13 @@ export const zStoredTodoItem = z.object({
 export const zTodoArray = z.array(zStoredTodoItem);
 
 
-// Requests and responses:
+// In HTTP requests and responses:
+
+export const zIfMatchHeader = z.coerce.number().int().positive();
+
+export const zErrorBody = z.object({
+  message: z.string(),
+});
 
 export const zCreateTodoRequest = z.object({
   creator: zUsername,

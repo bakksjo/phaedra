@@ -21,7 +21,7 @@ const mockTodo: StoredTodoItem = {
 
 describe('TodoCard', () => {
   test('renders the todo card', () => {
-    render(<TodoCard todo={mockTodo} />);
+    render(<TodoCard listName='default' todo={mockTodo} />);
 
     // Check that the title is rendered
     expect(screen.queryByText(mockTodo.data.title)).toBeInTheDocument();
@@ -34,7 +34,7 @@ describe('TodoCard', () => {
   });
 
   test('renders the correct last modified time', () => {
-    render(<TodoCard todo={mockTodo} />);
+    render(<TodoCard listName='default' todo={mockTodo} />);
 
     // Check that the last modified time is rendered correctly
     expect(screen.queryByText(new RegExp(new Date(mockSpecificTime).toLocaleString()))).toBeInTheDocument();

@@ -42,7 +42,7 @@ export const TodoList = ({ listName }: ITodoListProps) => {
       ) : (
         <div>
           {todos.map((todo) => (
-            <TodoCard key={todo.meta.id} todo={todo} />
+            <TodoCard key={todo.meta.id} listName={listName} todo={todo} />
           ))}
         </div>
       )}

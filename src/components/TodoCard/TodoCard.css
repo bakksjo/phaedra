@@ -1,11 +1,18 @@
 .todo-card {
+  position: relative;
   border: 1px solid #ccc;
-  border-radius: 8px;
   padding: 16px;
-  margin: 8px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 8px;
+  border-radius: 4px;
+  background-color: #fff;
+  transition: background-color 0.3s;
   display: flex;
   flex-direction: column;
+}
+
+.todo-card.pending-update {
+  color: gray;
+  background-color: #f9f9f9;
 }
 
 .todo-card-header {
@@ -16,6 +23,7 @@
 
 .todo-card-title {
   font-size: 1.2em;
+  cursor: pointer;
 }
 
 .todo-card-state-text {
@@ -28,7 +36,7 @@
   
 .todo-card-footer {
   margin-top: 8px;
-  font-size: 0.8em;
+  font-size: 0.9em;
   color: #666;
   display: flex;
   justify-content: space-between;
@@ -37,4 +45,29 @@
 .todo-card-created-by {
   font-size: 0.8em;
   color: #666;
+}
+
+.spinner-container {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.spinner {
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #000;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+  margin-top: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

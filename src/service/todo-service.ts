@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { zCreateTodoRequest, zRevision, zTodoArray, zUpdateTodoRequest } from '../phaedra-schemas';
+import { zCreateTodoRequest, zIfMatchHeader, zTodoArray, zUpdateTodoRequest } from '../phaedra-schemas';
 import { ErrorBody, StoredTodoItem, Revision, TodoItemData } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { CreateTodoResult, ITodoStore, UpdateTodoResult } from '../store/todo-store';
@@ -9,7 +9,7 @@ import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
 
 const LIST_NAME = 'default'; // Hardcoded for now (TODO).
-const IF_MATCH_HEADER_DATA_TYPE = () => { const revisionValue: Revision = 1; return typeof(revisionValue); };
+const IF_MATCH_HEADER_DATA_TYPE = (() => { const revisionSentinel: Revision = 1; return typeof(revisionSentinel); })();
 
 const createAndInitializeStore = (): ITodoStore => {
   const store = new EphemeralTodoStore();
@@ -75,21 +75,24 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
       }
     }
 
+    // Inputs
     const listName = request.params.listName;
     const todoId = request.params.todoId;
-    let revision: Revision;
+    let ifMatchHeader: number;
     try {
-      revision = zRevision.parse(request.headers['if-match']);
+      ifMatchHeader = zIfMatchHeader.parse(request.headers['if-match']);
     } catch (err) {
-      response.status(400).send({ message: `If-Match: <${IF_MATCH_HEADER_DATA_TYPE}> header required for update` });
+      response.status(400).send({ message: `'If-Match: <${IF_MATCH_HEADER_DATA_TYPE}>' header required for update` });
       return;
     }
+    const revision = ifMatchHeader;
+
     const updatedTodo = zUpdateTodoRequest.parse(request.body);
 
-    const op = todoStore.update(listName, todoId, revision, updatedTodo, validateUpdate);
+      const op = todoStore.update(listName, todoId, revision, updatedTodo, validateUpdate);
 
-    const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
-    response.status(httpStatus).send(responseBody);
+      const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
+      response.status(httpStatus).send(responseBody);
   })
 ;}
 
