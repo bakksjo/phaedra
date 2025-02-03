@@ -16,7 +16,4 @@ export const validateUpdate = (
   ) {
     return `Illegal attempt to change state from '${currentItem.state}' to '${proposedItem.state}'`;
   }
-
-  // No errors found.
-  return undefined;
 };
