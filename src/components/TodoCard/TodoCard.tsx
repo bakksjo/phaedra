@@ -76,9 +76,16 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
     }
   };
 
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setNewTitle(todo.data.title);
+  }
+
   const handleKeyPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       await submitTitleInputChange();
+    } else if (e.key === 'Escape') {
+      cancelEditing()
     }
   };
 
@@ -91,7 +98,7 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
             value={newTitle}
             onChange={handleTitleInputChange}
             onKeyDown={handleKeyPress}
-            onBlur={() => setIsEditing(false)}
+            onBlur={cancelEditing}
             autoFocus
             disabled={!!pendingUpdate}
             className="todo-card-input"
