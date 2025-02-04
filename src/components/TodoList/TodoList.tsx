@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { zFetchTodosResponse } from '../../phaedra-schemas';
 import { FetchTodosResponse, StoredTodoItem } from '../../phaedra.types';
 import { TodoCard } from '../TodoCard/TodoCard';
+import './TodoList.css';
 
 const fetchTodos = async (baseUrl: string, listName: string): Promise<FetchTodosResponse> => {
   const url = `${baseUrl}todo-lists/${listName}/todos`;
@@ -31,16 +32,16 @@ export const TodoList = ({ listName }: ITodoListProps) => {
 
   useEffect(() => {
     loadTodos();
-  }, []);
+  }, [listName]);
 
   return (
-    <div data-testid="todo-list">
-      {loading && <span>Loading TODO list: {listName}</span>}
+    <div className="todo-list" data-testid="todo-list">
+      {loading && <span className="todo-list-loading">Loading TODO list: {listName}</span>}
 
       {todos.length === 0 && !loading ? (
-        <span>No todos found</span>
+        <span className="todo-list-empty">No todos found</span>
       ) : (
-        <div>
+        <div className="todo-list-items">
           {todos.map((todo) => (
             <TodoCard key={todo.meta.id} listName={listName} todo={todo} />
           ))}
