@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { zCreateTodoRequest, zIfMatchHeader, zTodoArray, zUpdateTodoRequest } from '../phaedra-schemas';
+import { zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
 import { ErrorBody, StoredTodoItem, Revision, TodoItemData } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { CreateTodoResult, ITodoStore, UpdateTodoResult } from '../store/todo-store';
@@ -8,16 +8,13 @@ import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
 import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
 
-const LIST_NAME = 'default'; // Hardcoded for now (TODO).
 const IF_MATCH_HEADER_DATA_TYPE = (() => { const revisionSentinel: Revision = 1; return typeof(revisionSentinel); })();
 
 const createAndInitializeStore = (): ITodoStore => {
   const store = new EphemeralTodoStore();
   try {
-    const preExistingTodos = zTodoArray.parse(jsonTodos);
-    store.load(LIST_NAME, preExistingTodos);
-    store.createList('otherList'); // TODO: Temporary hack until we load lists (not just TODOS) from JSON.
-    store.create('otherList', { title: 'Fix storage', createdByUser: 'bakksjo', state: 'TODO' });
+    const preExistingTodos = zTodoStoreExport.parse(jsonTodos);
+    store.importStore(preExistingTodos);
   } catch (err) {
     console.error('Error parsing pre-existing todos:', err);
   }
@@ -95,8 +92,8 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
       const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
       response.status(httpStatus).send(responseBody);
-  })
-;}
+  });
+}
 
 export function startTodoService(port: number) {
   const app = express();

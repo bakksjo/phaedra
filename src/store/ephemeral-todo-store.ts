@@ -1,13 +1,14 @@
-import { Revision, StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoItemId } from '../phaedra.types';
-import { ILoadableStore } from './loadable-store';
+import { Revision, StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoItemId, TodoStoreExport } from '../phaedra.types';
+import { IStoreImportExport } from './store-import-export';
 import { CreateTodoResult, DeleteResult, ITodoStore, UpdateTodoResult, UpdateValidationFunction } from './todo-store';
 import { v4 as uuidv4 } from 'uuid';
+import { zTodoStoreExport } from '../phaedra-schemas';
 
 interface TodoList {
   [listName: string]: StoredTodoItem[];
 }
 
-export class EphemeralTodoStore implements ITodoStore, ILoadableStore {
+export class EphemeralTodoStore implements ITodoStore, IStoreImportExport {
   private todoLists: TodoList = {};
 
   createList(listName: string): void {
@@ -89,7 +90,11 @@ export class EphemeralTodoStore implements ITodoStore, ILoadableStore {
     return { result: 'deleted' };
   }
 
-  load(listName: string, todo: StoredTodoItem[]): void {
-    this.todoLists[listName] = todo;
+  importStore(data: TodoStoreExport): void {
+    this.todoLists = data;
+  }
+
+  exportStore(): TodoStoreExport {
+    return zTodoStoreExport.parse(this.todoLists);
   }
 }

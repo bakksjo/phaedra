@@ -244,9 +244,91 @@ describe('EphemeralTodoStore', () => {
 });
 
 describe('EphemeralTodoStore without any lists', () => {
-  test('returns empty array when no lists exist', () => {
+  test('getLists() returns empty array when no lists exist', () => {
     const sut = new EphemeralTodoStore();
     const lists = sut.getLists();
     expect(lists).toHaveLength(0);
+  });
+});
+
+describe('EphemeralTodoStore exportStore()', () => {
+  const sut = new EphemeralTodoStore();
+  const todo1: TodoItemData = { title: 'Task 1', createdByUser: 'user1', state: 'TODO' };
+  const todo2: TodoItemData = { title: 'Task 2', createdByUser: 'user2', state: 'TODO' };
+
+  beforeEach(() => {
+    const list1Name = 'list1';
+    const list2Name = 'list2';
+
+    sut.createList(list1Name);
+    sut.createList(list2Name);
+  
+    sut.create(list1Name, todo1);
+    sut.create(list2Name, todo2);
+  });
+
+  test('exportStore() output is complete and with correct format', () => {
+    const exportedStore = sut.exportStore();
+  
+    expect(exportedStore).toEqual({
+      list1: [
+        {
+          data: todo1,
+          meta: expect.objectContaining({
+            id: expect.any(String),
+            revision: 1,
+            lastModifiedTime: expect.any(String),
+          }),
+        },
+      ],
+      list2: [
+        {
+          data: todo2,
+          meta: expect.objectContaining({
+            id: expect.any(String),
+            revision: 1,
+            lastModifiedTime: expect.any(String),
+          }),
+        },
+      ],
+    });
+  });
+
+  test('exportStore() returns a defensive deep copy', () => {
+    const exportedStore = sut.exportStore();
+  
+    // Mutate the exported object
+    exportedStore.list3 = [{ data: { title: 'Task 3', createdByUser: 'user3', state: 'TODO' }, meta: { id: 'id3', revision: 1, lastModifiedTime: new Date().toISOString() } }];
+    exportedStore.list1[0].data.title = 'Modified Task 1';
+  
+    // Validate that the original store is not affected
+    const originalStore = sut.exportStore();
+  
+    expect(originalStore).toEqual({
+      list1: [
+        {
+          data: todo1,
+          meta: expect.objectContaining({
+            id: expect.any(String),
+            revision: 1,
+            lastModifiedTime: expect.any(String),
+          }),
+        },
+      ],
+      list2: [
+        {
+          data: todo2,
+          meta: expect.objectContaining({
+            id: expect.any(String),
+            revision: 1,
+            lastModifiedTime: expect.any(String),
+          }),
+        },
+      ],
+    });
+  
+    // Validate that the mutations did not affect the original store
+    expect(originalStore).not.toHaveProperty('list3');
+    expect(originalStore.list1[0].data.title).toBe('Task 1');
   });
 });

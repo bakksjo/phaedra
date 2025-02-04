@@ -26,6 +26,7 @@ export const zStoredTodoItem = z.object({
 
 export const zTodoArray = z.array(zStoredTodoItem);
 
+export const zTodoStoreExport = z.record(zTodoArray);
 
 // In HTTP requests and responses:
 
