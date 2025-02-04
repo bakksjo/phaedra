@@ -1,12 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { TodoCard } from './TodoCard';
-import { StoredTodoItem } from '../../phaedra.types';
+import { TodoCard, TodoItem } from './TodoCard';
 import { v4 as uuidv4 } from 'uuid';
 
 const mockSpecificTime = '2023-01-01T12:00:00Z';
-const mockTodo: StoredTodoItem = {
+const mockTodo: TodoItem = {
+  'type': 'stored',
   data: {
     title: 'Test TODO',
     state: 'TODO',
@@ -18,10 +18,12 @@ const mockTodo: StoredTodoItem = {
     revision: 1,
   }
 };
+const mockOnUpdate = jest.fn();
+const mockOnRemove = jest.fn();
 
 describe('TodoCard', () => {
   test('renders the todo card', () => {
-    render(<TodoCard listName='default' todo={mockTodo} />);
+    render(<TodoCard listName='default' todo={mockTodo} onUpdate={mockOnUpdate} onRemove={mockOnRemove} />);
 
     // Check that the title is rendered
     expect(screen.queryByText(mockTodo.data.title)).toBeInTheDocument();
@@ -34,7 +36,7 @@ describe('TodoCard', () => {
   });
 
   test('renders the correct last modified time', () => {
-    render(<TodoCard listName='default' todo={mockTodo} />);
+    render(<TodoCard listName='default' todo={mockTodo} onUpdate={mockOnUpdate} onRemove={mockOnRemove} />);
 
     // Check that the last modified time is rendered correctly
     expect(screen.queryByText(new RegExp(new Date(mockSpecificTime).toLocaleString()))).toBeInTheDocument();

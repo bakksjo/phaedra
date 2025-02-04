@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import { zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
-import { ErrorBody, StoredTodoItem, Revision, TodoItemData } from '../phaedra.types';
+import { ErrorBody, StoredTodoItem, Revision } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { CreateTodoResult, ITodoStore, UpdateTodoResult } from '../store/todo-store';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
@@ -59,13 +59,8 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     }
 
     const listName = request.params.listName;
-    const createTodoRequest = zCreateTodoRequest.parse(request.body);
+    const newTodo = zCreateTodoRequest.parse(request.body);
 
-    const newTodo: TodoItemData = {
-      title: createTodoRequest.title,
-      createdByUser: createTodoRequest.creator,
-      state: 'TODO',
-    };
     const op = todoStore.create(listName, newTodo);
 
     const [ httpStatus, responseBody ] = getResponseForCreateOperation(op);

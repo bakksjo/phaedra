@@ -46,7 +46,7 @@ export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
         ) : (
           <>
             <TodoListSelector onSelect={setSelectedList} />
-            {selectedList && (<TodoList key={selectedList} listName={selectedList} />)}
+            {selectedList && (<TodoList key={selectedList} listName={selectedList} username={username} />)}
           </>
         )}
       </div>

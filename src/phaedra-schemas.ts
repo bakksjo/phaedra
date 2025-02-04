@@ -36,10 +36,7 @@ export const zErrorBody = z.object({
   message: z.string(),
 });
 
-export const zCreateTodoRequest = z.object({
-  creator: zUsername,
-  title: zTodoItemTitle,
-});
+export const zCreateTodoRequest = zTodoItemData;
 
 export const zUpdateTodoRequest = zTodoItemData;
 

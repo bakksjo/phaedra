@@ -45,7 +45,7 @@ describe('TodoList', () => {
   });
 
   test('the loading screen is shown initially', () => {
-    render(<TodoList listName="whatever" />);
+    render(<TodoList listName="whatever" username="someone" />);
 
     expect(screen.queryByText(/Loading/)).toBeInTheDocument();
     expect(screen.queryByText('Test TODO 1')).not.toBeInTheDocument();
@@ -54,7 +54,7 @@ describe('TodoList', () => {
 
   test('shows TODOs after loading', async () => {
     await act(async () => {
-      render(<TodoList listName="doesn't matter" />);
+      render(<TodoList listName="doesn't matter" username="someone" />);
     });
   
     expect(screen.queryByText(/Loading/)).not.toBeInTheDocument();

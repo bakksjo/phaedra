@@ -1,17 +1,33 @@
 import React, { useState } from 'react';
-import { StoredTodoItem, TodoItemData, TodoState } from '../../phaedra.types';
+import { StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoState } from '../../phaedra.types';
 import './TodoCard.css';
-
-interface TodoCardProps {
-  listName: string;
-  todo: StoredTodoItem;
-}
 
 const availableStates: TodoState[] = ['TODO', 'ONGOING', 'DONE'];
 
-export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
+type StoredItem = {
+  type: 'stored';
+  data: TodoItemData;
+  meta: StoredTodoItemMetadata;
+}
+
+type EphemeralItem = {
+  type: 'ephemeral';
+  data: TodoItemData;
+  meta: { id: string };
+}
+
+export type TodoItem = StoredItem | EphemeralItem;
+
+interface TodoCardProps {
+  listName: string;
+  todo: TodoItem;
+  onUpdate: (todoId: string, todo: TodoItem) => void;
+  onRemove: (todoId: string) => void;
+}
+
+export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: TodoCardProps) => {
   const [todo, setTodo] = useState(initialTodo);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(todo.type === 'ephemeral');
   const [isEditingState, setIsEditingState] = useState(false);
   const [isUpdatePending, setIsUpdatePending] = useState(false);
   const [newTitle, setNewTitle] = useState(todo.data.title);
@@ -35,6 +51,7 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
 
   const handleStateClick = () => {
     if (isUpdatePending) return;
+    if (todo.type === 'ephemeral') return; //Don't allow editing state for new TODOs
     setIsEditingState(true);
   };
 
@@ -46,35 +63,54 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
     setNewState(e.target.value as TodoState);
   };
 
-  const submitChange = async (updatedTodo: TodoItemData) => {
+  const updateTodoState = (updatedTodo: TodoItem) => {
+    const previousTodoId = todo.meta.id;
+    setTodo(updatedTodo);
+    onUpdate(previousTodoId, updatedTodo);
+  }
+
+  const submitChange = async (localUpdatedTodo: TodoItemData) => {
     const previousTodo = todo;
     setIsUpdatePending(true);
-    const temporaryPresumedMeta = { ...todo.meta, revision: todo.meta.revision + 1, lastModifiedTime: new Date().toISOString() };
-    const localTodoWhilePendingUpdate = { data: updatedTodo, meta: temporaryPresumedMeta };
-    setTodo(localTodoWhilePendingUpdate);
+    updateTodoState({ ...todo, data: localUpdatedTodo });
     try {
-      const response = await fetch(
-        `http://localhost:3001/todo-lists/${listName}/todos/${todo.meta.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "If-Match": todo.meta.revision.toString(),
-          },
-          body: JSON.stringify(updatedTodo),
-        }
-      );
-      if (response.status === 409) {
+      const request = todo.type === 'ephemeral'
+        ? fetch(
+            `http://localhost:3001/todo-lists/${listName}/todos`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(localUpdatedTodo),
+            }
+          )
+        : fetch(
+            `http://localhost:3001/todo-lists/${listName}/todos/${todo.meta.id}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                "If-Match": todo.meta.revision.toString(),
+              },
+              body: JSON.stringify(localUpdatedTodo),
+            }
+          );
+
+      const response = await request;
+
+      if (todo.type === 'stored' && response.status === 409) {
         console.log('Conflict detected, showing latest');
       } else if (!response.ok) {
         throw new Error("Failed to update TODO item");
       }
-      const updatedTodoItem: StoredTodoItem = await response.json();
-      setTodo(updatedTodoItem);
+      const responseTodo: StoredTodoItem = await response.json();
+      updateTodoState({ type: 'stored', data: responseTodo.data, meta: responseTodo.meta });
     } catch (error) {
       console.error(error);
       // The update failed, so revert the UI to the previous state.
-      setTodo(previousTodo);
+      updateTodoState(previousTodo);
+      if (todo.type === 'ephemeral') onRemove(todo.meta.id); // TODO: Show error and allow retry instead of removing.
     } finally {
       setIsUpdatePending(false);
     }
@@ -98,16 +134,17 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
     await submitChange(updatedTodo);
   };
 
-  const cancelEditing = () => {
+  const cancelEditingTitle = () => {
     setIsEditingTitle(false);
     setNewTitle(todo.data.title);
+    if (todo.type === 'ephemeral') onRemove(todo.meta.id);
   }
 
   const handleKeyPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       await submitTitleInputChange();
     } else if (e.key === 'Escape') {
-      cancelEditing()
+      cancelEditingTitle();
     }
   };
 
@@ -120,7 +157,7 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
             value={newTitle}
             onChange={handleTitleInputChange}
             onKeyDown={handleKeyPress}
-            onBlur={cancelEditing}
+            onBlur={cancelEditingTitle}
             autoFocus
             disabled={!!isUpdatePending}
             className="todo-card-input"
@@ -157,10 +194,12 @@ export const TodoCard = ({ listName, todo: initialTodo }: TodoCardProps) => {
           )}
         </div>
       </div>
-      <div className="todo-card-footer">
-        <span className="todo-card-created-by">Created by: {todo.data.createdByUser}</span>
-        <span className="todo-card-time">Last Modified: {new Date(todo.meta.lastModifiedTime).toLocaleString()}</span>
-      </div>
+      {todo.type === 'stored' && (
+        <div className="todo-card-footer">
+          <span className="todo-card-created-by">Created by: {todo.data.createdByUser}</span>
+          <span className="todo-card-time">Last Modified: {new Date(todo.meta.lastModifiedTime).toLocaleString()}</span>
+        </div>
+      )}
       {isUpdatePending && <div className="spinner-container"><div className="spinner"></div></div>}
     </div>
   );
