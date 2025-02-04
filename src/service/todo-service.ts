@@ -16,6 +16,8 @@ const createAndInitializeStore = (): ITodoStore => {
   try {
     const preExistingTodos = zTodoArray.parse(jsonTodos);
     store.load(LIST_NAME, preExistingTodos);
+    store.createList('otherList'); // TODO: Temporary hack until we load lists (not just TODOS) from JSON.
+    store.create('otherList', { title: 'Fix storage', createdByUser: 'bakksjo', state: 'TODO' });
   } catch (err) {
     console.error('Error parsing pre-existing todos:', err);
   }

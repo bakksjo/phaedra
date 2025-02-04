@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TodoList } from '../TodoList/TodoList';
 import { UsernameInput } from '../UsernameInput/UsernameInput';
+import { TodoListSelector } from '../TodoListSelector/TodoListSelector';
 import './PhaedraApp.css';
 
 interface IPhaedraAppProps {
@@ -10,6 +11,7 @@ interface IPhaedraAppProps {
 export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
   const [username, setUsername] = useState<string | undefined>(initialUsername);
   const [isEditingUsername, setIsEditingUsername] = useState<boolean>(!username);
+  const [selectedList, setSelectedList] = useState<string>('');
 
   const handleUsernameSubmit = (username: string) => {
     setUsername(username);
@@ -23,8 +25,6 @@ export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
   const cancelEditUsername = () => {
     setIsEditingUsername(false);
   }
-
-  const listName = 'default'; // TODO: Hardcoded for now.
 
   return (
     <div className="phaedra-app">
@@ -44,7 +44,10 @@ export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
         {!username ? (
           <span>Please enter your alias above.</span>
         ) : (
-          <TodoList listName={listName} />
+          <>
+            <TodoListSelector onSelect={setSelectedList} />
+            {selectedList && (<TodoList key={selectedList} listName={selectedList} />)}
+          </>
         )}
       </div>
     </div>
