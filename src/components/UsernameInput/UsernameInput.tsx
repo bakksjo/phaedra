@@ -1,11 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import './UsernameInput.css';
 
-interface IUsernameInputProps {
+interface UsernameInputProps {
   onSubmit: (username: string) => void;
+  initialValue?: string;
+  onCancel?: () => void;
 }
 
-export const UsernameInput = ({ onSubmit }: IUsernameInputProps) => {
-  const [currentValue, setCurrentValue] = useState<string>('');
+export const UsernameInput = ({ onSubmit, initialValue = '', onCancel }: UsernameInputProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [currentValue, setCurrentValue] = useState(initialValue);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const isValid = currentValue?.length > 0;
 
@@ -19,12 +29,16 @@ export const UsernameInput = ({ onSubmit }: IUsernameInputProps) => {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       handleSubmit();
+    } else if (onCancel && event.key === 'Escape') {
+      setCurrentValue('');
+      onCancel();
     }
   };
 
   return (
     <div>
       <input
+        ref={inputRef}
         data-testid="username-input"
         type="text"
         value={currentValue}
@@ -33,12 +47,22 @@ export const UsernameInput = ({ onSubmit }: IUsernameInputProps) => {
         placeholder="Enter your username"
       />
       <button
+        className="username-button"
         data-testid="username-submit-button"
         onClick={handleSubmit}
         disabled={!isValid}
       >
         Submit
       </button>
+      {onCancel && (
+        <button
+          className="username-button"
+          data-testid="username-cancel-button"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+      )}
     </div>
   );
 };

@@ -7,19 +7,22 @@ interface IPhaedraAppProps {
   initialUsername?: string;
 }
 
-interface IPhaedraAppState {
-  username: string | null;
-}
-
 export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
-  const [state, setState] = useState<IPhaedraAppState>({
-    username: initialUsername || null,
-  });
+  const [username, setUsername] = useState<string | undefined>(initialUsername);
+  const [isEditingUsername, setIsEditingUsername] = useState<boolean>(!username);
 
   const handleUsernameSubmit = (username: string) => {
-    setState((prevState) => ({ ...prevState, username }));
+    setUsername(username);
+    setIsEditingUsername(false);
   };
 
+  const handleUsernameClick = () => {
+    setIsEditingUsername(true);
+  };
+
+  const cancelEditUsername = () => {
+    setIsEditingUsername(false);
+  }
 
   const listName = 'default'; // TODO: Hardcoded for now.
 
@@ -27,16 +30,19 @@ export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
     <div className="phaedra-app">
       <div className="top-bar">
         <span className="title">Phaedra task management</span>
-        {state.username && (
+        {username && !isEditingUsername && (
           <div className="user-info">
-            <span className="username">{state.username}</span>
+            <span className="username" onClick={handleUsernameClick}>{username}</span>
             <span className="profile-icon">👤</span>
           </div>
         )}
+        {isEditingUsername && (
+          <UsernameInput onSubmit={handleUsernameSubmit} initialValue={username} onCancel={username ? cancelEditUsername : undefined} />
+        )}
       </div>
       <div className="content">
-        {!state.username ? (
-          <UsernameInput onSubmit={handleUsernameSubmit} />
+        {!username ? (
+          <span>Please enter your alias above.</span>
         ) : (
           <TodoList listName={listName} />
         )}
