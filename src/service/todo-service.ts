@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import fs from 'fs';
 import { zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
 import { ErrorBody, StoredTodoItem, Revision, TodoItemData } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
@@ -8,9 +9,10 @@ import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
 import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
 
+const STORE_FILE_PATH = "src/service/todos.json";
 const IF_MATCH_HEADER_DATA_TYPE = (() => { const revisionSentinel: Revision = 1; return typeof(revisionSentinel); })();
 
-const createAndInitializeStore = (): ITodoStore => {
+function createAndInitializeStore(): [ store: ITodoStore, storeShutdown: (callback: () => void) => void ] {
   const store = new EphemeralTodoStore();
   try {
     const preExistingTodos = zTodoStoreExport.parse(jsonTodos);
@@ -18,7 +20,13 @@ const createAndInitializeStore = (): ITodoStore => {
   } catch (err) {
     console.error('Error parsing pre-existing todos:', err);
   }
-  return store;
+  const storeShutdown = (callback: () => void) => {
+    const exportData = store.exportStore();
+    const fileContents = JSON.stringify(exportData, null, 2);
+    fs.writeFile(STORE_FILE_PATH, fileContents, callback);
+    console.log('Store saved to disk:', STORE_FILE_PATH);
+  };
+  return [ store, storeShutdown ];
 }
 
 function configureServiceEndpoints(apiServer: express.Application, todoStore: ITodoStore) {
@@ -96,11 +104,15 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 }
 
 export function startTodoService(port: number) {
-  const app = express();
-  const todoStore = createAndInitializeStore();
-  configureServiceEndpoints(app, todoStore);
-  const server = app.listen(port, () => {
+  const restServer = express();
+  const [store, storeShutdown] = createAndInitializeStore();
+  configureServiceEndpoints(restServer, store);
+  const runningServer = restServer.listen(port, () => {
     console.log(`Todo service running on port ${port}`);
   });
-  return server;
+
+  const shutdownFunc = (callback?: (err?: Error) => void) => {
+    storeShutdown(() => { runningServer.close(callback); });
+  }
+  return shutdownFunc;
 }

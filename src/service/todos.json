@@ -2,9 +2,9 @@
   "phaedra": [
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "TODO",
-        "title": "Drag'n'drop functionality"
+        "title": "Drag'n'drop functionality",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "5ec1e75e-c1e7-5ec1-e75e-c1e75ec1e75e",
@@ -14,9 +14,9 @@
     },
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "ONGOING",
-        "title": "Make the app pretty"
+        "title": "Make the app pretty",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "ba5eba11-ba5e-ba11-ba5e-ba5eba11ba5e",
@@ -26,9 +26,9 @@
     },
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "DONE",
-        "title": "Extract initial task data to a json file"
+        "title": "Extract initial task data to a json file",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa57",
@@ -38,9 +38,9 @@
     },
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "TODO",
-        "title": "Ability to listen for server updates"
+        "title": "Ability to listen for server updates",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa58",
@@ -50,9 +50,9 @@
     },
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "DONE",
-        "title": "ETAGS support"
+        "title": "ETAGS support",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa59",
@@ -62,9 +62,9 @@
     },
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "TODO",
-        "title": "View conflict resolution"
+        "title": "View conflict resolution",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa60",
@@ -74,9 +74,9 @@
     },
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "TODO",
-        "title": "store.createList(<existing>) wipes out existing list!"
+        "title": "store.createList(<existing>) wipes out existing list!",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa62",
@@ -86,9 +86,9 @@
     },
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "TODO",
-        "title": "Allow creating and deleting todos in the UI"
+        "title": "Allow creating and deleting todos in the UI",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa63",
@@ -100,9 +100,9 @@
   "housework": [
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "TODO",
-        "title": "Vacuum the carpet"
+        "title": "Vacuum the carpet",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa58-fa57fa57fa64",
@@ -112,9 +112,9 @@
     },
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "TODO",
-        "title": "Do the dishes"
+        "title": "Do the dishes",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa58-fa57fa57fa65",
@@ -124,9 +124,9 @@
     },
     {
       "data": {
-        "createdByUser": "backsea",
         "state": "TODO",
-        "title": "Another task"
+        "title": "Another task",
+        "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa61",

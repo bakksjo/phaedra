@@ -32,7 +32,7 @@ const createWindow = (): void => {
   mainWindow.webContents.openDevTools();
 };
 
-const todoService = startTodoService(3001);
+const todoServiceShutdown = startTodoService(3001);
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -48,7 +48,7 @@ app.on('ready', () => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     console.log('All windows closed - closing server');
-    todoService.close(() => {
+    todoServiceShutdown(() => {
       console.log('Server closed - exiting app');
       app.quit();
     });
