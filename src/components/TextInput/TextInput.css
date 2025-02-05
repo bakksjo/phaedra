@@ -1,0 +1,31 @@
+.text-input-container {
+  display: flex;
+  align-items: space-between;
+}
+
+.text-input-field {
+  border: 1px solid #333; /* Very thin dark gray border */
+  padding: 0.5em; /* Optional: Add some padding for better appearance */
+  font-size: 1em; /* Optional: Adjust font size */
+  flex-grow: 1;
+}
+
+.text-input-button {
+  font-size: 0.8em;
+  cursor: pointer;
+  margin-left: 0.8em;
+  flex-grow: 0;
+}
+
+.text-input-submit-button {
+  color: green;
+}
+
+.text-input-cancel-button {
+  color: red;
+}
+
+.text-input-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

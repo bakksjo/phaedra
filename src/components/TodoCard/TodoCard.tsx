@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoState } from '../../phaedra.types';
 import './TodoCard.css';
+import { TextInput } from '../TextInput/TextInput';
 
 type StoredItem = {
   type: 'stored';
@@ -33,12 +34,13 @@ interface TodoCardProps {
   onRemove: (todoId: string) => void;
 }
 
+const titleValidator = (title: string): boolean => !!(title.trim());
+
 export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: TodoCardProps) => {
   const [todo, setTodo] = useState(initialTodo);
   const [isEditingTitle, setIsEditingTitle] = useState(todo.type === 'ephemeral');
   const [isEditingState, setIsEditingState] = useState(false);
   const [isUpdatePending, setIsUpdatePending] = useState(false);
-  const [newTitle, setNewTitle] = useState(todo.data.title);
   const [newState, setNewState] = useState(todo.data.state);
 
   const getStateIcon = (state: TodoState): string => {
@@ -61,10 +63,6 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
     if (isUpdatePending) return;
     if (todo.type === 'ephemeral') return; // Don't allow editing state for unsaved TODOs
     setIsEditingState(true);
-  };
-
-  const handleTitleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewTitle(e.target.value);
   };
 
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -120,7 +118,8 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
     }
   };
 
-  const submitTitleInputChange = async () => {
+  const submitTitleInputChange = async (newTitle: string) => {
+    console.log('submitTitleInputChange callback invoked')
     setIsEditingTitle(false);
     if (newTitle === todo.data.title) {
       return;
@@ -140,17 +139,8 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
 
   const cancelEditingTitle = () => {
     setIsEditingTitle(false);
-    setNewTitle(todo.data.title);
     if (todo.type === 'ephemeral') onRemove(todo.meta.id);
   }
-
-  const handleKeyPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      await submitTitleInputChange();
-    } else if (e.key === 'Escape') {
-      cancelEditingTitle();
-    }
-  };
 
   const handleDelete = async () => {
     if (todo.type !== 'stored') throw new Error('Unreachable, should never happen');
@@ -184,61 +174,63 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
   return (
     <div className={`todo-card ${isUpdatePending ? 'pending-update' : ''}`}>
       <div className="todo-card-header">
-        {isEditingTitle ? (
-          <input
-            type="text"
-            value={newTitle}
-            onChange={handleTitleInputChange}
-            onKeyDown={handleKeyPress}
-            onBlur={cancelEditingTitle}
-            autoFocus
-            disabled={!!isUpdatePending}
-            className="todo-card-input"
-          />
-        ) : (
-          <span className="todo-card-title" onClick={handleTitleClick}>
-            {todo.data.title}
-          </span>
-        )}
-        <div>
-          {isEditingState ? (
-            <select
-              value={newState}
-              onChange={handleStateChange}
-              onBlur={submitStateChange}
-              disabled={!!isUpdatePending}
-              className="todo-card-select"
-            >
-              {[todo.data.state, ...availableStateTransitions].map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <>
-              <span className="todo-card-state-text" onClick={handleStateClick}>
-                {todo.data.state}
+        <div className="todo-card-mutable-props">
+          <div className="todo-card-title-container">
+            {isEditingTitle ? (
+              <TextInput
+                value={todo.data.title}
+                placeholder="Enter title"
+                validator={titleValidator}
+                onSubmit={submitTitleInputChange}
+                onCancel={cancelEditingTitle} />
+            ) : (
+              <span className="todo-card-title" onClick={handleTitleClick}>
+                {todo.data.title}
               </span>
-              <span className="todo-card-state-icon" onClick={handleStateClick}>
-                {getStateIcon(todo.data.state)}
-              </span>
-            </>
+            )}
+          </div>
+          <div className="todo-card-state-container">
+            {isEditingState ? (
+              <select
+                value={newState}
+                onChange={handleStateChange}
+                onBlur={submitStateChange}
+                disabled={!!isUpdatePending}
+                className="todo-card-select"
+              >
+                {[todo.data.state, ...availableStateTransitions].map((state) => (
+                  <option key={state} value={state}>
+                    {state}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="todo-card-state">
+                <span className="todo-card-state-icon" onClick={handleStateClick}>
+                  {getStateIcon(todo.data.state)}
+                </span>
+                <span className="todo-card-state-text" onClick={handleStateClick}>
+                  {todo.data.state}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="todo-card-header-actionbox">
+          {!isEditingTitle && !isEditingState && !isUpdatePending && (
+            <button className="todo-card-button-delete" onClick={handleDelete} disabled={isUpdatePending}>
+              <span className="todo-card-button-delete-icon">✗</span><span className="todo-card-button-delete-text">Delete</span>
+            </button>
           )}
+          {isUpdatePending && <div className="spinner"></div>}
         </div>
       </div>
       {todo.type === 'stored' && (
         <div className="todo-card-footer">
           <span className="todo-card-created-by">Created by: {todo.data.createdByUser}</span>
-          <div>
-            <span className="todo-card-time">Last Modified: {new Date(todo.meta.lastModifiedTime).toLocaleString()}</span>
-            <button className="todo-card-button-delete" onClick={handleDelete} disabled={isUpdatePending}>
-              ❌
-            </button>
-          </div>
+          <span className="todo-card-time">Last Modified: {new Date(todo.meta.lastModifiedTime).toLocaleString()}</span>
         </div>
       )}
-      {isUpdatePending && <div className="spinner-container"><div className="spinner"></div></div>}
     </div>
   );
 };

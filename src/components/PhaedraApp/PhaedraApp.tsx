@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { TodoList } from '../TodoList/TodoList';
-import { UsernameInput } from '../UsernameInput/UsernameInput';
+import { TextInput } from '../TextInput/TextInput';
 import { TodoListSelector } from '../TodoListSelector/TodoListSelector';
 import './PhaedraApp.css';
 
 interface IPhaedraAppProps {
   initialUsername?: string;
 }
+
+const usernameTrimmer = (username: string) => username.trim();
+const usernameValidator = (username: string) => username?.length > 0;
 
 export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
   const [username, setUsername] = useState<string | undefined>(initialUsername);
@@ -37,12 +40,12 @@ export const PhaedraApp = ({ initialUsername }: IPhaedraAppProps) => {
           </div>
         )}
         {isEditingUsername && (
-          <UsernameInput onSubmit={handleUsernameSubmit} initialValue={username} onCancel={username ? cancelEditUsername : undefined} />
+          <TextInput value={username} placeholder='<your alias>' trimmer={usernameTrimmer} validator={usernameValidator} onSubmit={handleUsernameSubmit} onCancel={username ? cancelEditUsername : undefined} />
         )}
       </div>
       <div className="content">
         {!username ? (
-          <span>Please enter your alias above.</span>
+          <span>Please begin by entering your alias above.</span>
         ) : (
           <>
             <TodoListSelector onSelect={setSelectedList} />

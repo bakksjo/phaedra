@@ -17,8 +17,22 @@
 
 .todo-card-header {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+}
+
+.todo-card-mutable-props {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 8;
+  justify-content: space-between;
+}
+
+.todo-card-state-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .todo-card-title {
@@ -31,7 +45,7 @@
 }
 
 .todo-card-state-icon {
-  font-size: 1.5em;
+  font-size: 1em;
 }
   
 .todo-card-footer {
@@ -39,7 +53,9 @@
   font-size: 0.9em;
   color: #666;
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
+  align-items: flex-end;
 }
 
 .todo-card-created-by {
@@ -48,22 +64,21 @@
 }
 
 .todo-card-button-delete {
-  background: none;
-  border: none;
-  color: red;
-  font-size: 1.5em;
+  font-size: 1em;
   cursor: pointer;
+}
+
+.todo-card-button-delete-icon {
+  color: red;
+}
+
+.todo-card-button-delete-text {
+  padding-left: 0.3em;
 }
 
 .todo-card-button-delete:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-.spinner-container {
-  position: absolute;
-  top: 8px;
-  right: 8px;
 }
 
 .spinner {
@@ -73,7 +88,6 @@
   width: 16px;
   height: 16px;
   animation: spin 1s linear infinite;
-  margin-top: 8px;
 }
 
 @keyframes spin {
