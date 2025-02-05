@@ -4,7 +4,7 @@ import fs from 'fs';
 import { zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
 import { ErrorBody, StoredTodoItem, Revision } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
-import { CreateTodoResult, ITodoStore, UpdateTodoResult } from '../store/todo-store';
+import { CreateTodoResult, ITodoStore, UpdateTodoResult, DeleteResult } from '../store/todo-store';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
 import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
@@ -95,6 +95,32 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
       const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
       response.status(httpStatus).send(responseBody);
+  });
+
+  apiServer.delete('/todo-lists/:listName/todos/:todoId', (request: Request, response: Response<StoredTodoItem | ErrorBody>) => {
+    const getResponseForDeleteOperation = (op: DeleteResult): [number, StoredTodoItem | undefined] => {
+      switch (op.result) {
+        case 'deleted': return [204, undefined];
+        case 'not-found': return [404, undefined];
+        case 'conflict': return [409, op.currentItem];
+      }
+    }
+
+    const listName = request.params.listName;
+    const todoId = request.params.todoId;
+    let ifMatchHeader: number;
+    try {
+      ifMatchHeader = zIfMatchHeader.parse(request.headers['if-match']);
+    } catch (err) {
+      response.status(400).send({ message: `'If-Match: <${IF_MATCH_HEADER_DATA_TYPE}>' header required for delete` });
+      return;
+    }
+    const revision = ifMatchHeader;
+
+    const op = todoStore.delete(listName, todoId, revision);
+
+    const [ httpStatus, responseBody ] = getResponseForDeleteOperation(op);
+    response.status(httpStatus).send(responseBody);
   });
 
   apiServer.get("/todo-lists/:listName/events", (request: Request, response: Response) => {

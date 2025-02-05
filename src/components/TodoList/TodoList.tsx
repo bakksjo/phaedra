@@ -59,7 +59,7 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
 
   return (
     <div className="todo-list" data-testid="todo-list">
-      <button className="add-todo-button" onClick={handleAddNewTodo}>+</button>
+      <button className="add-todo-button" onClick={handleAddNewTodo}>+ New item</button>
       {todos.length === 0 ? (
         <span className="todo-list-empty">No todos found</span>
       ) : (

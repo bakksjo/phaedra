@@ -47,6 +47,19 @@
   color: #666;
 }
 
+.todo-card-button-delete {
+  background: none;
+  border: none;
+  color: red;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+.todo-card-button-delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .spinner-container {
   position: absolute;
   top: 8px;

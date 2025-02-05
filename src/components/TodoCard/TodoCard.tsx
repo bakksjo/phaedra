@@ -51,7 +51,7 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
 
   const handleStateClick = () => {
     if (isUpdatePending) return;
-    if (todo.type === 'ephemeral') return; //Don't allow editing state for new TODOs
+    if (todo.type === 'ephemeral') return; // Don't allow editing state for unsaved TODOs
     setIsEditingState(true);
   };
 
@@ -144,6 +144,33 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
     }
   };
 
+  const handleDelete = async () => {
+    if (todo.type !== 'stored') throw new Error('Unreachable, should never happen');
+
+    setIsUpdatePending(true);
+    try {
+      const response = await fetch(
+        `http://localhost:3001/todo-lists/${listName}/todos/${todo.meta.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "If-Match": todo.meta.revision.toString(),
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to delete TODO item. Response: ' + response.body);
+      }
+
+      onRemove(todo.meta.id);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsUpdatePending(false);
+    }
+  };
+
   return (
     <div className={`todo-card ${isUpdatePending ? 'pending-update' : ''}`}>
       <div className="todo-card-header">
@@ -193,10 +220,16 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
       {todo.type === 'stored' && (
         <div className="todo-card-footer">
           <span className="todo-card-created-by">Created by: {todo.data.createdByUser}</span>
-          <span className="todo-card-time">Last Modified: {new Date(todo.meta.lastModifiedTime).toLocaleString()}</span>
+          <div>
+            <span className="todo-card-time">Last Modified: {new Date(todo.meta.lastModifiedTime).toLocaleString()}</span>
+            <button className="todo-card-button-delete" onClick={handleDelete} disabled={isUpdatePending}>
+              ❌
+            </button>
+          </div>
         </div>
       )}
       {isUpdatePending && <div className="spinner-container"><div className="spinner"></div></div>}
     </div>
   );
 };
+
