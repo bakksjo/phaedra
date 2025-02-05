@@ -47,20 +47,20 @@ export const UsernameInput = ({ onSubmit, initialValue = '', onCancel }: Usernam
         placeholder="Enter your username"
       />
       <button
-        className="username-button"
+        className="username-button username-submit-button"
         data-testid="username-submit-button"
         onClick={handleSubmit}
         disabled={!isValid}
       >
-        Submit
+        ✓
       </button>
       {onCancel && (
         <button
-          className="username-button"
+          className="username-button username-cancel-button"
           data-testid="username-cancel-button"
           onClick={onCancel}
         >
-          Cancel
+          ✗
         </button>
       )}
     </div>
