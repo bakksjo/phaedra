@@ -4,12 +4,13 @@ import fs from 'fs';
 import { zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
 import { ErrorBody, StoredTodoItem, Revision } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
-import { CreateTodoResult, ITodoStore, UpdateTodoResult, DeleteResult } from '../store/todo-store';
+import { CreateTodoResult, ITodoStore, UpdateTodoResult, DeleteResult } from '../store/store-crud';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
 import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
 
 const STORE_FILE_PATH = "src/service/todos.json";
+const UPDATE_SLOWNESS_MS = 1;
 const IF_MATCH_HEADER_DATA_TYPE = (() => { const revisionSentinel: Revision = 1; return typeof(revisionSentinel); })();
 
 function createAndInitializeStore(): [ store: ITodoStore, storeShutdown: (callback: () => void) => void ] {
@@ -61,10 +62,12 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     const listName = request.params.listName;
     const newTodo = zCreateTodoRequest.parse(request.body);
 
-    const op = todoStore.create(listName, newTodo);
+    setTimeout(() => {
+      const op = todoStore.create(listName, newTodo);
 
-    const [ httpStatus, responseBody ] = getResponseForCreateOperation(op);
-    response.status(httpStatus).send(responseBody);
+      const [ httpStatus, responseBody ] = getResponseForCreateOperation(op);
+      response.status(httpStatus).send(responseBody);
+    }, UPDATE_SLOWNESS_MS);
   });
 
   apiServer.put('/todo-lists/:listName/todos/:todoId', (request: Request, response: Response<StoredTodoItem | ErrorBody>) => {
@@ -91,10 +94,12 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
     const updatedTodo = zUpdateTodoRequest.parse(request.body);
 
+    setTimeout(() => {
       const op = todoStore.update(listName, todoId, revision, updatedTodo, validateUpdate);
 
       const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
       response.status(httpStatus).send(responseBody);
+    }, UPDATE_SLOWNESS_MS);
   });
 
   apiServer.delete('/todo-lists/:listName/todos/:todoId', (request: Request, response: Response<StoredTodoItem | ErrorBody>) => {
@@ -117,10 +122,12 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     }
     const revision = ifMatchHeader;
 
-    const op = todoStore.delete(listName, todoId, revision);
+    setTimeout(() => {
+      const op = todoStore.delete(listName, todoId, revision);
 
-    const [ httpStatus, responseBody ] = getResponseForDeleteOperation(op);
-    response.status(httpStatus).send(responseBody);
+      const [ httpStatus, responseBody ] = getResponseForDeleteOperation(op);
+      response.status(httpStatus).send(responseBody);
+    }, UPDATE_SLOWNESS_MS);
   });
 
   apiServer.get("/todo-lists/:listName/events", (request: Request, response: Response) => {

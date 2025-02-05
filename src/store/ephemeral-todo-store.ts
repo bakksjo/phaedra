@@ -1,6 +1,6 @@
 import { Revision, StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoItemId, TodoStoreExport } from '../phaedra.types';
 import { IStoreImportExport } from './store-import-export';
-import { CreateTodoResult, DeleteResult, ITodoStore, UpdateTodoResult, UpdateValidationFunction } from './todo-store';
+import { CreateTodoResult, DeleteResult, ITodoStore, UpdateTodoResult, UpdateValidationFunction } from './store-crud';
 import { v4 as uuidv4 } from 'uuid';
 import { zTodoStoreExport } from '../phaedra-schemas';
 
