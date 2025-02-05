@@ -1,15 +1,7 @@
 import { useEffect, useState } from 'react';
-import { zFetchTodosResponse } from '../../phaedra-schemas';
-import { FetchTodosResponse } from '../../phaedra.types';
+import { zStoredTodoItem } from '../../phaedra-schemas';
 import { TodoItem, TodoCard } from '../TodoCard/TodoCard';
 import './TodoList.css';
-
-const fetchTodos = async (baseUrl: string, listName: string): Promise<FetchTodosResponse> => {
-  const url = `${baseUrl}todo-lists/${listName}/todos`;
-  const response = await fetch(url);
-  const json = await response.json();
-  return zFetchTodosResponse.parse(json);
-};
 
 interface ITodoListProps { 
   listName: string;
@@ -18,21 +10,19 @@ interface ITodoListProps {
 
 export const TodoList = ({ listName, username }: ITodoListProps) => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const loadTodos = async () => {
-    try {
-      const todos = await fetchTodos('http://localhost:3001/', listName);
-      setTodos(todos.map(todo => ({ type: 'stored', data: todo.data, meta: todo.meta })));
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching TODOs from server:', err);
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    loadTodos();
+    const eventSource = new EventSource(`http://localhost:3001/todo-lists/${listName}/events`);
+
+    eventSource.onmessage = (event) => {
+      const eventDataObject = JSON.parse(event.data);
+      const updatedTodo = zStoredTodoItem.parse(eventDataObject);
+      onUpdateItem(updatedTodo.meta.id, { type: 'stored', data: updatedTodo.data, meta: updatedTodo.meta });
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, [listName]);
 
   const handleAddNewTodo = () => {
@@ -47,23 +37,30 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
         id: self.crypto.randomUUID(),
       },
     };
-    setTodos([newTodoItem, ...todos]);
+    setTodos(prevTodos => [newTodoItem, ...prevTodos]);
   };
 
   const onRemoveItem = (todoId: string) => {
-    setTodos(todos.filter(todo => todo.meta.id !== todoId));
+    setTodos(prevTodos => prevTodos.filter(todo => todo.meta.id !== todoId));
   }
 
   const onUpdateItem = (todoId: string, updatedTodo: TodoItem) => {
-    setTodos(todos.map(currentTodo => currentTodo.meta.id === todoId ? updatedTodo : currentTodo));
+    setTodos(prevTodos => {
+      const index = prevTodos.findIndex(todo => todo.meta.id === todoId);
+      if (index >= 0) {
+        const updatedTodos = [...prevTodos];
+        updatedTodos[index] = updatedTodo;
+        return updatedTodos;
+      } else {
+        return [updatedTodo, ...prevTodos];
+      }
+    });
   }
 
   return (
     <div className="todo-list" data-testid="todo-list">
-      {loading && <span className="todo-list-loading">Loading TODO list: {listName}</span>}
-
       <button className="add-todo-button" onClick={handleAddNewTodo}>+</button>
-      {todos.length === 0 && !loading ? (
+      {todos.length === 0 ? (
         <span className="todo-list-empty">No todos found</span>
       ) : (
         <div className="todo-list-items">

@@ -96,6 +96,30 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
       const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
       response.status(httpStatus).send(responseBody);
   });
+
+  apiServer.get("/todo-lists/:listName/events", (request: Request, response: Response) => {
+    const listName = request.params.listName;
+
+    response.setHeader("Content-Type", "text/event-stream");
+    response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("Connection", "keep-alive");
+
+    const todos = todoStore.list(listName);
+    if (todos) {
+      todos.forEach(todo => {
+        response.write(`data: ${JSON.stringify(todo)}\n\n`);
+      });
+    }
+
+    // Fake some updates. TODO: Listen to DB.
+    setInterval(() => {
+      const todos = todoStore.list(listName);
+      if (!todos) return;
+      if (todos.length === 0) return;
+      const lastTodo = todos[todos.length-1];
+      response.write(`data: ${JSON.stringify(lastTodo)}\n\n`);
+    }, 10000);
+  });
 }
 
 export function startTodoService(port: number) {

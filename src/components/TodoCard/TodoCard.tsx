@@ -64,13 +64,11 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
   };
 
   const updateTodoState = (updatedTodo: TodoItem) => {
-    const previousTodoId = todo.meta.id;
     setTodo(updatedTodo);
-    onUpdate(previousTodoId, updatedTodo);
+    onUpdate(todo.meta.id, updatedTodo);
   }
 
   const submitChange = async (localUpdatedTodo: TodoItemData) => {
-    const previousTodo = todo;
     setIsUpdatePending(true);
     updateTodoState({ ...todo, data: localUpdatedTodo });
     try {
@@ -108,8 +106,6 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
       updateTodoState({ type: 'stored', data: responseTodo.data, meta: responseTodo.meta });
     } catch (error) {
       console.error(error);
-      // The update failed, so revert the UI to the previous state.
-      updateTodoState(previousTodo);
       if (todo.type === 'ephemeral') onRemove(todo.meta.id); // TODO: Show error and allow retry instead of removing.
     } finally {
       setIsUpdatePending(false);
