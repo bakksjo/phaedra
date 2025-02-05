@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoState } from '../../phaedra.types';
 import './TodoCard.css';
 
-const availableStates: TodoState[] = ['TODO', 'ONGOING', 'DONE'];
-
 type StoredItem = {
   type: 'stored';
   data: TodoItemData;
@@ -17,6 +15,16 @@ type EphemeralItem = {
 }
 
 export type TodoItem = StoredItem | EphemeralItem;
+
+type ValidStateTransitions = {
+  [K in TodoState]: Exclude<TodoState, K>[];
+};
+
+const validStateTransitions: ValidStateTransitions = {
+  TODO: ['ONGOING'],
+  ONGOING: ['DONE', 'TODO'],
+  DONE: ['ONGOING'],
+};
 
 interface TodoCardProps {
   listName: string;
@@ -171,6 +179,8 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
     }
   };
 
+  const availableStateTransitions: TodoState[] = validStateTransitions[todo.data.state];
+
   return (
     <div className={`todo-card ${isUpdatePending ? 'pending-update' : ''}`}>
       <div className="todo-card-header">
@@ -199,7 +209,7 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
               disabled={!!isUpdatePending}
               className="todo-card-select"
             >
-              {availableStates.map((state) => (
+              {[todo.data.state, ...availableStateTransitions].map((state) => (
                 <option key={state} value={state}>
                   {state}
                 </option>

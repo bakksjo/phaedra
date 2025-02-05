@@ -87,13 +87,13 @@
     {
       "data": {
         "state": "TODO",
-        "title": "Allow creating and deleting todos in the UI 1",
+        "title": "Allow creating and deleting todos in the UI",
         "createdByUser": "backsea"
       },
       "meta": {
         "id": "fa57fa57-fa57-fa57-fa57-fa57fa57fa63",
-        "lastModifiedTime": "2025-02-05T11:24:21.444Z",
-        "revision": 2
+        "lastModifiedTime": "2025-02-05T15:42:17.343Z",
+        "revision": 3
       }
     },
     {
@@ -104,8 +104,8 @@
       },
       "meta": {
         "id": "e5fbaf57-8295-49df-9855-536d1923dea7",
-        "lastModifiedTime": "2025-02-05T12:25:51.293Z",
-        "revision": 1
+        "lastModifiedTime": "2025-02-05T16:27:36.822Z",
+        "revision": 3
       }
     }
   ],
