@@ -2,9 +2,10 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import { zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
-import { ErrorBody, StoredTodoItem, Revision } from '../phaedra.types';
+import { ErrorBody, StoredTodoItem, Revision, StoreEvent, StoreUpdateEvent } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { CreateTodoResult, ITodoStore, UpdateTodoResult, DeleteResult } from '../store/store-crud';
+import { IListenableTodoStore, StoreListener } from '../store/store-listen';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
 import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
@@ -13,7 +14,7 @@ const STORE_FILE_PATH = "src/service/todos.json";
 const UPDATE_SLOWNESS_MS = 1;
 const IF_MATCH_HEADER_DATA_TYPE = (() => { const revisionSentinel: Revision = 1; return typeof(revisionSentinel); })();
 
-function createAndInitializeStore(): [ store: ITodoStore, storeShutdown: (callback: () => void) => void ] {
+function createAndInitializeStore(): [ store: ITodoStore & IListenableTodoStore, storeShutdown: (callback: () => void) => void ] {
   const store = new EphemeralTodoStore();
   try {
     const preExistingTodos = zTodoStoreExport.parse(jsonTodos);
@@ -30,7 +31,7 @@ function createAndInitializeStore(): [ store: ITodoStore, storeShutdown: (callba
   return [ store, storeShutdown ];
 }
 
-function configureServiceEndpoints(apiServer: express.Application, todoStore: ITodoStore) {
+function configureServiceEndpoints(apiServer: express.Application, todoStore: ITodoStore & IListenableTodoStore) {
   apiServer.use(express.json());
   apiServer.use(zodErrorHandler);
   apiServer.use(cors());
@@ -140,18 +141,24 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     const todos = todoStore.list(listName);
     if (todos) {
       todos.forEach(todo => {
-        response.write(`data: ${JSON.stringify(todo)}\n\n`);
+        const todoAsEvent: StoreUpdateEvent = { type: 'update', todo };
+        response.write(`data: ${JSON.stringify(todoAsEvent)}\n\n`);
       });
     }
 
-    // Fake some updates. TODO: Listen to DB.
-    setInterval(() => {
-      const todos = todoStore.list(listName);
-      if (!todos) return;
-      if (todos.length === 0) return;
-      const lastTodo = todos[todos.length-1];
-      response.write(`data: ${JSON.stringify(lastTodo)}\n\n`);
-    }, 10000);
+    const eventListener: StoreListener = (event: StoreEvent) => {
+      response.write(`data: ${JSON.stringify(event)}\n\n`);
+    };
+
+    const listenerHandle = todoStore.addListener(listName, eventListener);
+
+    console.log(`Client connected to '${listName}' event stream`);
+
+    response.on("close", () => {
+      console.log(`Client disconnected from '${listName}' event stream`);
+      listenerHandle.remove();
+      response.end();
+    });
   });
 }
 

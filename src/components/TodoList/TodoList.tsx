@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { zStoredTodoItem } from '../../phaedra-schemas';
+import { zStoreEvent } from '../../phaedra-schemas';
+import { StoreEvent } from '../../phaedra.types';
 import { TodoItem, TodoCard } from '../TodoCard/TodoCard';
 import './TodoList.css';
 
@@ -16,8 +17,22 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
 
     eventSource.onmessage = (event) => {
       const eventDataObject = JSON.parse(event.data);
-      const updatedTodo = zStoredTodoItem.parse(eventDataObject);
-      onUpdateItem(updatedTodo.meta.id, { type: 'stored', data: updatedTodo.data, meta: updatedTodo.meta });
+      const storeEvent: StoreEvent = zStoreEvent.parse(eventDataObject);
+
+      // This is a type guard function; it guarantees statically that all event types get handled.
+      type UpdateHandler = () => void;
+      const getUpdateHandlerForEvent = (): UpdateHandler => {
+        switch(storeEvent.type) {
+          case 'update':
+            return (): void => onUpdateItem({ type: 'stored', data: storeEvent.todo.data, meta: storeEvent.todo.meta });
+
+          case 'delete':
+            return (): void => onRemoveItem(storeEvent.id);
+        }
+      }
+
+      const updateHandler = getUpdateHandlerForEvent();
+      updateHandler();
     };
 
     return () => {
@@ -44,16 +59,18 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
     setTodos(prevTodos => prevTodos.filter(todo => todo.meta.id !== todoId));
   }
 
-  const onUpdateItem = (todoId: string, updatedTodo: TodoItem) => {
+  const onUpdateItem = (updatedTodo: TodoItem) => {
     setTodos(prevTodos => {
-      const index = prevTodos.findIndex(todo => todo.meta.id === todoId);
-      if (index >= 0) {
-        const updatedTodos = [...prevTodos];
-        updatedTodos[index] = updatedTodo;
-        return updatedTodos;
-      } else {
+      const index = prevTodos.findIndex(todo => todo.meta.id === updatedTodo.meta.id);
+      if (index < 0) {
+        // New insertion
         return [updatedTodo, ...prevTodos];
       }
+
+      // Replacement
+      const updatedTodos = [...prevTodos];
+      updatedTodos[index] = updatedTodo;
+      return updatedTodos;
     });
   }
 

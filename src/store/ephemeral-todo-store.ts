@@ -1,15 +1,24 @@
-import { Revision, StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoItemId, TodoStoreExport } from '../phaedra.types';
+import { Revision, StoredTodoItem, StoredTodoItemMetadata, StoreEvent, TodoItemData, TodoItemId, TodoStoreExport } from '../phaedra.types';
 import { IStoreImportExport } from './store-import-export';
 import { CreateTodoResult, DeleteResult, ITodoStore, UpdateTodoResult, UpdateValidationFunction } from './store-crud';
 import { v4 as uuidv4 } from 'uuid';
 import { zTodoStoreExport } from '../phaedra-schemas';
+import { IListenableTodoStore, IStoreListenerHandle, StoreListener } from './store-listen';
 
 interface TodoList {
   [listName: string]: StoredTodoItem[];
 }
 
-export class EphemeralTodoStore implements ITodoStore, IStoreImportExport {
+export class EphemeralTodoStore implements ITodoStore, IStoreImportExport, IListenableTodoStore {
   private todoLists: TodoList = {};
+  private listeners: Record<string, StoreListener[]> = {};
+
+  updateListeners(listName: string, event: StoreEvent): void {
+    const listeners = this.listeners[listName];
+    if (!listeners) return;
+
+    listeners.forEach(listener => listener(event));
+  }
 
   createList(listName: string): void {
     this.todoLists[listName] = [];
@@ -32,6 +41,8 @@ export class EphemeralTodoStore implements ITodoStore, IStoreImportExport {
       meta: metadata,
     };
     this.todoLists[listName].push(storedTodo);
+
+    this.updateListeners(listName, { type: 'update', todo: storedTodo });
 
     return { result: 'created', todo: storedTodo };
   }
@@ -72,6 +83,8 @@ export class EphemeralTodoStore implements ITodoStore, IStoreImportExport {
     };
     list[index] = updatedItem;
 
+    this.updateListeners(listName, { type: 'update', todo: updatedItem });
+
     return { result: 'updated', todo: updatedItem };
   }
 
@@ -87,6 +100,8 @@ export class EphemeralTodoStore implements ITodoStore, IStoreImportExport {
 
     list.splice(index, 1);
 
+    this.updateListeners(listName, { type: 'delete', id: todoId });
+
     return { result: 'deleted' };
   }
 
@@ -96,5 +111,26 @@ export class EphemeralTodoStore implements ITodoStore, IStoreImportExport {
 
   exportStore(): TodoStoreExport {
     return zTodoStoreExport.parse(this.todoLists);
+  }
+
+  addListener(listName: string, listener: StoreListener): IStoreListenerHandle {
+    if (!this.todoLists[listName]) {
+      throw new Error(`List ${listName} does not exist`);
+    }
+
+    if (!this.listeners[listName]) {
+      this.listeners[listName] = [];
+    }
+
+    this.listeners[listName].push(listener);
+
+    const removeListener = () => {
+      this.listeners[listName] = this.listeners[listName].filter(l => l !== listener);
+      if (this.listeners[listName].length === 0) {
+        delete this.listeners[listName];
+      }
+    };
+
+    return { remove: removeListener };
   }
 }

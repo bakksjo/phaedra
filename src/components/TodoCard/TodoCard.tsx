@@ -30,14 +30,13 @@ const validStateTransitions: ValidStateTransitions = {
 interface TodoCardProps {
   listName: string;
   todo: TodoItem;
-  onUpdate: (todoId: string, todo: TodoItem) => void;
+  onUpdate: (todo: TodoItem) => void;
   onRemove: (todoId: string) => void;
 }
 
 const titleValidator = (title: string): boolean => !!(title.trim());
 
-export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: TodoCardProps) => {
-  const [todo, setTodo] = useState(initialTodo);
+export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState(todo.type === 'ephemeral');
   const [isEditingState, setIsEditingState] = useState(false);
   const [isUpdatePending, setIsUpdatePending] = useState(false);
@@ -69,14 +68,16 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
     setNewState(e.target.value as TodoState);
   };
 
-  const updateTodoState = (updatedTodo: TodoItem) => {
-    setTodo(updatedTodo);
-    onUpdate(todo.meta.id, updatedTodo);
+  const updateTodo = (updatedTodo: TodoItem) => {
+    if (todo.type === 'ephemeral' && updatedTodo.type === 'stored') {
+      onRemove(todo.meta.id); // Remove ephemeral TODO with pseudo-id.
+    }
+    onUpdate(updatedTodo);
   }
 
   const submitChange = async (localUpdatedTodo: TodoItemData) => {
     setIsUpdatePending(true);
-    updateTodoState({ ...todo, data: localUpdatedTodo });
+    updateTodo({ ...todo, data: localUpdatedTodo });
     try {
       const request = todo.type === 'ephemeral'
         ? fetch(
@@ -109,7 +110,7 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
         throw new Error("Failed to update TODO item");
       }
       const responseTodo: StoredTodoItem = await response.json();
-      updateTodoState({ type: 'stored', data: responseTodo.data, meta: responseTodo.meta });
+      updateTodo({ type: 'stored', data: responseTodo.data, meta: responseTodo.meta });
     } catch (error) {
       console.error(error);
       if (todo.type === 'ephemeral') onRemove(todo.meta.id); // TODO: Show error and allow retry instead of removing.
@@ -119,7 +120,6 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
   };
 
   const submitTitleInputChange = async (newTitle: string) => {
-    console.log('submitTitleInputChange callback invoked')
     setIsEditingTitle(false);
     if (newTitle === todo.data.title) {
       return;
@@ -234,4 +234,3 @@ export const TodoCard = ({ listName, todo: initialTodo, onUpdate, onRemove }: To
     </div>
   );
 };
-

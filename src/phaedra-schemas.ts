@@ -24,6 +24,21 @@ export const zStoredTodoItem = z.object({
   meta: zStoredTodoItemMetadata,
 });
 
+export const zStoreUpdateEvent = z.object({
+  type: z.literal("update"),
+  todo: zStoredTodoItem,
+});
+
+export const zStoreDeleteEvent = z.object({
+  type: z.literal("delete"),
+  id: zTodoItemId,
+});
+
+export const zStoreEvent = z.discriminatedUnion("type", [
+  zStoreUpdateEvent,
+  zStoreDeleteEvent,
+]);
+
 export const zTodoArray = z.array(zStoredTodoItem);
 
 export const zTodoStoreExport = z.record(zTodoArray);
