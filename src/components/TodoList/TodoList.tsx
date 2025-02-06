@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { zStoreEvent } from '../../phaedra-schemas';
-import { StoreEvent } from '../../phaedra.types';
+import { StoreEvent, TodoState } from '../../phaedra.types';
 import { TodoItem, TodoCard } from '../TodoCard/TodoCard';
+import { StateFilterSelector } from '../StateFilterSelector/StateFilterSelector';
 import './TodoList.css';
 
 interface ITodoListProps { 
@@ -11,6 +12,7 @@ interface ITodoListProps {
 
 export const TodoList = ({ listName, username }: ITodoListProps) => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [selectedStates, setSelectedStates] = useState<TodoState[]>(['TODO', 'ONGOING', 'DONE']);
 
   useEffect(() => {
     const eventSource = new EventSource(`http://localhost:3001/todo-lists/${listName}/events`);
@@ -19,7 +21,7 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
       const eventDataObject = JSON.parse(event.data);
       const storeEvent: StoreEvent = zStoreEvent.parse(eventDataObject);
 
-      // This is a type guard function; it guarantees statically that all event types get handled.
+      // Using this function to guarantee (statically) that all event types are handled. No 'default' case needed.
       type UpdateHandler = () => void;
       const getUpdateHandlerForEvent = (): UpdateHandler => {
         switch(storeEvent.type) {
@@ -29,7 +31,7 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
           case 'delete':
             return (): void => onRemoveItem(storeEvent.id);
         }
-      }
+      };
 
       const updateHandler = getUpdateHandlerForEvent();
       updateHandler();
@@ -74,14 +76,23 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
     });
   }
 
+  const handleStateFilterChange = (selectedStates: TodoState[]) => {
+    setSelectedStates(selectedStates);
+  };
+
+  const filteredTodos = todos.filter(todo => selectedStates.includes(todo.data.state));
+
   return (
     <div className="todo-list" data-testid="todo-list">
-      <button className="todo-list-button-add" onClick={handleAddNewTodo}>+ New item</button>
-      {todos.length === 0 ? (
-        <span className="todo-list-empty">No todos found</span>
+      <div className="todo-list-header">
+        <button className="todo-list-button-add" onClick={handleAddNewTodo}>+ New item</button>
+        <StateFilterSelector selected={selectedStates} onChange={handleStateFilterChange} />
+      </div>
+      {filteredTodos.length === 0 ? (
+        <span className="todo-list-empty">{todos.length == 0 ? 'No todos in this list' : 'No todos matching filter'}</span>
       ) : (
         <div className="todo-list-items">
-          {todos.map((todo) => (
+          {filteredTodos.map((todo) => (
             <TodoCard key={todo.meta.id} listName={listName} todo={todo} onUpdate={onUpdateItem} onRemove={onRemoveItem} />
           ))}
         </div>
