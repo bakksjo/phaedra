@@ -15,3 +15,8 @@
   flex-direction: column;
   gap: 10px;
 }
+
+.todo-list-button-add {
+  font-size: 1em;
+  cursor: pointer;
+}
