@@ -182,14 +182,26 @@
     },
     {
       "data": {
-        "state": "ONGOING",
+        "state": "DONE",
         "title": "Ability to add new lists",
         "createdByUser": "pid47152"
       },
       "meta": {
         "id": "9a7c6cff-b18f-426a-b2aa-2188266b19cf",
-        "lastModifiedTime": "2025-02-06T12:23:43.968Z",
-        "revision": 2
+        "lastModifiedTime": "2025-02-06T16:59:21.964Z",
+        "revision": 3
+      }
+    },
+    {
+      "data": {
+        "state": "TODO",
+        "title": "Package and upload to github",
+        "createdByUser": "pid31740"
+      },
+      "meta": {
+        "id": "461dc814-3a5c-4cfc-94a1-5982511cd696",
+        "lastModifiedTime": "2025-02-06T17:00:00.230Z",
+        "revision": 1
       }
     }
   ],
@@ -228,6 +240,20 @@
         "id": "aff5dbb4-e98a-4e57-adac-0298a6979d28",
         "lastModifiedTime": "2025-02-05T21:40:57.670Z",
         "revision": 3
+      }
+    }
+  ],
+  "Naughty list": [
+    {
+      "data": {
+        "state": "ONGOING",
+        "title": "Be naughty",
+        "createdByUser": "pid59192"
+      },
+      "meta": {
+        "id": "db06c03c-514e-4203-a8b4-4c7caa9a2028",
+        "lastModifiedTime": "2025-02-06T17:00:10.377Z",
+        "revision": 2
       }
     }
   ]
