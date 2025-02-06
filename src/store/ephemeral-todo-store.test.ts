@@ -22,7 +22,7 @@ const titleAppendOnlyValidator = (currentItem: TodoItemData, proposedItem: TodoI
 };
 
 describe('EphemeralTodoStore', () => {
-  const sut = new EphemeralTodoStore();
+  let sut: EphemeralTodoStore;
 
   const listName = 'testList';
   const todo: TodoItemData = {
@@ -32,6 +32,7 @@ describe('EphemeralTodoStore', () => {
   };
 
   beforeEach(() => {
+    sut = new EphemeralTodoStore();
     sut.createList(listName);
   });
 
@@ -41,16 +42,17 @@ describe('EphemeralTodoStore', () => {
     if (res.result !== 'created') throw unreachableButRequiredForNarrowing();
 
     expect(res.todo.meta.id).toBeDefined();
+    expect(res.todo.meta.revision).toBe(1);
 
-    const storedTodo = sut.getById(listName, res.todo.meta.id);
-    expect(storedTodo).toBeDefined();
-    if (!storedTodo) throw unreachableButRequiredForNarrowing();
+    const getRes = sut.getById(listName, res.todo.meta.id);
+    expect(getRes.result).not.toBe('not-found');
+    if (getRes.result === 'not-found') throw unreachableButRequiredForNarrowing();
 
-    expect(storedTodo.data).toEqual(todo);
+    expect(getRes.todo.data).toEqual(todo);
 
     const todos = sut.list(listName);
     expect(todos).toHaveLength(1);
-    expect(todos).toContainEqual(storedTodo);
+    expect(todos).toContainEqual(getRes.todo);
   });
 
   test('all TODO items in a list can be listed', () => {
@@ -66,6 +68,8 @@ describe('EphemeralTodoStore', () => {
     if (res2.result !== 'created') throw unreachableButRequiredForNarrowing();
 
     const todos = sut.list(listName);
+    expect(todos).not.toBe('list-not-found');
+    if (todos === 'list-not-found') throw unreachableButRequiredForNarrowing();
 
     expect(todos).toHaveLength(2);
     expectTodosToContain(todos, todo, secondTodo);
@@ -78,17 +82,20 @@ describe('EphemeralTodoStore', () => {
     const updatedTodo: TodoItemData = { ...todo, title: 'Updated TODO', state: 'DONE' };
     sut.update(listName, res1.todo.meta.id, res1.todo.meta.revision, updatedTodo);
 
-    const storedTodo = sut.getById(listName, res1.todo.meta.id);
-    expect(storedTodo).toBeDefined();
-    if (!storedTodo) throw unreachableButRequiredForNarrowing();
+    const getRes = sut.getById(listName, res1.todo.meta.id);
+    expect(getRes.result).not.toBe('not-found');
+    if (getRes.result === 'not-found') throw unreachableButRequiredForNarrowing();
 
-    expect(storedTodo.data).toEqual(updatedTodo);
-    expect(storedTodo.meta.revision).toBeGreaterThan(res1.todo.meta.revision);
-    expect(new Date(storedTodo.meta.lastModifiedTime).getTime())
+    expect(getRes.todo.data).toEqual(updatedTodo);
+    expect(getRes.todo.meta.revision).toBeGreaterThan(res1.todo.meta.revision);
+    expect(new Date(getRes.todo.meta.lastModifiedTime).getTime())
       .toBeGreaterThanOrEqual(new Date(res1.todo.meta.lastModifiedTime).getTime());
-    expect(storedTodo.meta.id).toEqual(res1.todo.meta.id);
+    expect(getRes.todo.meta.id).toEqual(res1.todo.meta.id);
 
     const todos = sut.list(listName);
+    expect(todos).not.toBe('list-not-found');
+    if (todos === 'list-not-found') throw unreachableButRequiredForNarrowing();
+
     expect(todos).toHaveLength(1);
     expectTodosToContain(todos, updatedTodo);
   });
@@ -99,10 +106,14 @@ describe('EphemeralTodoStore', () => {
 
     sut.delete(listName, res1.todo.meta.id, res1.todo.meta.revision);
 
-    const storedTodo = sut.getById(listName, res1.todo.meta.id);
-    expect(storedTodo).toBeUndefined();
+    const getRes = sut.getById(listName, res1.todo.meta.id);
+    expect(getRes.result).toBe('not-found');
+    if (getRes.result !== 'not-found') throw unreachableButRequiredForNarrowing();
+
+    expect(getRes.what).toBe('todo');
 
     const todos = sut.list(listName);
+    expect(todos).not.toBe('list-not-found');
     expect(todos).toHaveLength(0);
   });
   
@@ -119,22 +130,37 @@ describe('EphemeralTodoStore', () => {
     sut.create(anotherListName, anotherTodo);
 
     const firstList = sut.list(listName);
+    if (firstList === 'list-not-found') throw unreachableButRequiredForNarrowing();
+
     expect(firstList).toHaveLength(1);
     expectTodosToContain(firstList, todo);
 
     const secondList = sut.list(anotherListName);
+    if (secondList === 'list-not-found') throw unreachableButRequiredForNarrowing();
+
     expect(secondList).toHaveLength(1);
     expectTodosToContain(secondList, anotherTodo);
   });
   
-  test('returns undefined for non-existent TODO item', () => {
-    const fetchedTodo = sut.getById(listName, 'non-existent-id');
-    expect(fetchedTodo).toBeUndefined();
+  test('returns NotFound for non-existent TODO item', () => {
+    const getRes = sut.getById(listName, 'non-existent-id');
+    expect(getRes.result).toBe('not-found');
+    if (getRes.result !== 'not-found') throw unreachableButRequiredForNarrowing();
+
+    expect(getRes.what).toBe('todo');
   });
 
-  test('returns empty array for non-existent list', () => {
+  test('returns NotFound for getById from non-existent list', () => {
+    const getRes = sut.getById('non-existent-list', 'irrelevant-id');
+    expect(getRes.result).toBe('not-found');
+    if (getRes.result !== 'not-found') throw unreachableButRequiredForNarrowing();
+
+    expect(getRes.what).toBe('list');
+  });
+
+  test('returns not found when listing non-existent list', () => {
     const todos = sut.list('non-existent-list');
-    expect(todos).toBeUndefined();
+    expect(todos).toBe('list-not-found');
   });
 
   test('can list all existing TODO lists', () => {
@@ -161,6 +187,8 @@ describe('EphemeralTodoStore', () => {
 
     // Update attempt should not have changed any item in store.
     const todos = sut.list(listName);
+    if (todos === 'list-not-found') throw unreachableButRequiredForNarrowing();
+
     expect(todos).toHaveLength(1);
     expectTodosToContain(todos, todo);
   });
@@ -176,6 +204,8 @@ describe('EphemeralTodoStore', () => {
     if (res2.result !== 'updated') throw unreachableButRequiredForNarrowing();
     
     const todos = sut.list(listName);
+    if (todos === 'list-not-found') throw unreachableButRequiredForNarrowing();
+
     expect(todos).toHaveLength(1);
     expectTodosToContain(todos, validUpdate);
   });
@@ -193,13 +223,19 @@ describe('EphemeralTodoStore', () => {
 
     // Update attempt should not have changed any item in store.
     const todos = sut.list(listName);
+    if (todos === 'list-not-found') throw unreachableButRequiredForNarrowing();
+
     expect(todos).toHaveLength(1);
     expectTodosToContain(todos, todo);
   });
 
   test('fails to create TODO in non-existent list', () => {
     const result = sut.create('non-existent-list', todo);
+
     expect(result.result).toBe('not-found');
+    if (result.result !== 'not-found') throw unreachableButRequiredForNarrowing();
+
+    expect(result.what).toBe('list');
   });
 
   test('can delete a TODO item', () => {
@@ -224,6 +260,8 @@ describe('EphemeralTodoStore', () => {
     expect(deleteResult.currentItem).toEqual(res1.todo);
 
     const todos = sut.list(listName);
+    if (todos === 'list-not-found') throw unreachableButRequiredForNarrowing();
+
     expect(todos).toHaveLength(1);
     expectTodosToContain(todos, todo);
   });
@@ -232,14 +270,67 @@ describe('EphemeralTodoStore', () => {
     const deleteResult = sut.delete(listName, 'non-existent-id', 1);
     expect(deleteResult.result).toBe('not-found');
     if (deleteResult.result !== 'not-found') throw unreachableButRequiredForNarrowing();
-    expect(deleteResult.missing).toBe('todo');
+    expect(deleteResult.what).toBe('todo');
   });
 
   test('fails to delete a TODO item from a non-existent list', () => {
     const deleteResult = sut.delete('non-existent-list', 'item-id-is-irrelevant', 1);
     expect(deleteResult.result).toBe('not-found');
     if (deleteResult.result !== 'not-found') throw unreachableButRequiredForNarrowing();
-    expect(deleteResult.missing).toBe('list');
+    expect(deleteResult.what).toBe('list');
+  });
+
+  test('fails to update a TODO item in a non-existent list', () => {
+    const updateResult = sut.update('non-existent-list', 'item-id-is-irrelevant', 1, todo);
+
+    expect(updateResult.result).toBe('not-found');
+    if (updateResult.result !== 'not-found') throw unreachableButRequiredForNarrowing();
+
+    expect(updateResult.what).toBe('list');
+  });
+
+  test('fails to update a non-existent TODO item', () => {
+    const updateResult = sut.update(listName, 'non-existent-id', 1, todo);
+
+    expect(updateResult.result).toBe('not-found');
+    if (updateResult.result !== 'not-found') throw unreachableButRequiredForNarrowing();
+
+    expect(updateResult.what).toBe('todo');
+  });
+
+  test('fails to update a TODO item with a non-matching revision', () => {
+    const res1 = sut.create(listName, todo);
+    if (res1.result !== 'created') throw unreachableButRequiredForNarrowing();
+
+    const updateResult = sut.update(listName, res1.todo.meta.id, res1.todo.meta.revision - 1, todo);
+
+    expect(updateResult.result).toBe('conflict');
+    if (updateResult.result !== 'conflict') throw unreachableButRequiredForNarrowing();
+
+    expect(updateResult.currentItem).toEqual(res1.todo);
+  });
+
+  test('fails to create a list that already exists', () => {
+    const result = sut.createList(listName);
+    expect(result).toBe('already-exists');
+  });
+
+  test('can delete a list', () => {
+    const result = sut.deleteList(listName);
+    expect(result).toBe('deleted');
+
+    const lists = sut.getLists();
+    expect(lists).toHaveLength(0);
+  });
+
+  test('can delete a list even if it has TODO items in it', () => {
+    sut.create(listName, todo);
+
+    const result = sut.deleteList(listName);
+    expect(result).toBe('deleted');
+
+    const lists = sut.getLists();
+    expect(lists).toHaveLength(0);
   });
 });
 
@@ -252,11 +343,12 @@ describe('EphemeralTodoStore without any lists', () => {
 });
 
 describe('EphemeralTodoStore exportStore()', () => {
-  const sut = new EphemeralTodoStore();
+  let sut: EphemeralTodoStore;
   const todo1: TodoItemData = { title: 'Task 1', createdByUser: 'user1', state: 'TODO' };
   const todo2: TodoItemData = { title: 'Task 2', createdByUser: 'user2', state: 'TODO' };
 
   beforeEach(() => {
+    sut = new EphemeralTodoStore();
     const list1Name = 'list1';
     const list2Name = 'list2';
 
@@ -295,16 +387,15 @@ describe('EphemeralTodoStore exportStore()', () => {
   });
 
   test('exportStore() returns a defensive deep copy', () => {
-    const exportedStore = sut.exportStore();
+    const exportedStoreDataBefore = sut.exportStore();
   
     // Mutate the exported object
-    exportedStore.list3 = [{ data: { title: 'Task 3', createdByUser: 'user3', state: 'TODO' }, meta: { id: 'id3', revision: 1, lastModifiedTime: new Date().toISOString() } }];
-    exportedStore.list1[0].data.title = 'Modified Task 1';
+    exportedStoreDataBefore.list3 = [{ data: { title: 'Task 3', createdByUser: 'user3', state: 'TODO' }, meta: { id: 'id3', revision: 1, lastModifiedTime: new Date().toISOString() } }];
+    exportedStoreDataBefore.list1[0].data.title = 'Modified Task 1';
   
-    // Validate that the original store is not affected
-    const originalStore = sut.exportStore();
-  
-    expect(originalStore).toEqual({
+    // Validate that the changes didn't affect the original store.
+    const exportedStoreDataAfter = sut.exportStore();
+    expect(exportedStoreDataAfter).toEqual({
       list1: [
         {
           data: todo1,
@@ -328,7 +419,59 @@ describe('EphemeralTodoStore exportStore()', () => {
     });
   
     // Validate that the mutations did not affect the original store
-    expect(originalStore).not.toHaveProperty('list3');
-    expect(originalStore.list1[0].data.title).toBe('Task 1');
+    expect(exportedStoreDataAfter).not.toHaveProperty('list3');
+    expect(exportedStoreDataAfter.list1[0].data.title).toBe('Task 1');
+  });
+});
+
+describe('EphemeralTodoStore listening to store updates', () => {
+  let sut: EphemeralTodoStore;
+  const listName = 'testList';
+  const todo1: TodoItemData = { title: 'Task 1', createdByUser: 'user1', state: 'TODO' };
+
+  beforeEach(() => {
+    sut = new EphemeralTodoStore();
+    sut.createList(listName);
+  });
+
+  test('listener receives TODO updates', () => {
+    const listener = jest.fn();
+    sut.addTodoListener(listName, listener);
+
+    const res = sut.create(listName, todo1);
+    if (res.result !== 'created') throw unreachableButRequiredForNarrowing();
+
+    expect(listener).toHaveBeenCalledWith({ type: 'update', todo: res.todo });
+  });
+
+  test('listener receives TODO deletes', () => {
+    const listener = jest.fn();
+    const createRes = sut.create(listName, todo1);
+    if (createRes.result !== 'created') throw unreachableButRequiredForNarrowing();
+
+    sut.addTodoListener(listName, listener);
+
+    sut.delete(listName, createRes.todo.meta.id, createRes.todo.meta.revision);
+
+    expect(listener).toHaveBeenCalledWith({ type: 'delete', id: createRes.todo.meta.id });
+  });
+
+  test('list listener receives list creation', () => {
+    const listener = jest.fn();
+    sut.addListListener(listener);
+
+    const secondListName = 'list2';
+    sut.createList(secondListName);
+
+    expect(listener).toHaveBeenCalledWith({ type: 'created', list: secondListName });
+  });
+
+  test('list listener receives list deletion', () => {
+    const listener = jest.fn();
+    sut.addListListener(listener);
+
+    sut.deleteList(listName);
+
+    expect(listener).toHaveBeenCalledWith({ type: 'deleted', list: listName });
   });
 });

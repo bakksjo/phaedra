@@ -12,7 +12,8 @@ import {
   zTodoStoreExport,
   zStoreDeleteEvent,
   zStoreUpdateEvent,
-  zStoreEvent
+  zStoreTodoEvent,
+  zStoreListEvent
 } from './phaedra-schemas';
 
 export type TodoItemId = z.infer<typeof zTodoItemId>;
@@ -24,7 +25,8 @@ export type Revision = z.infer<typeof zRevision>;
 
 export type StoreUpdateEvent = z.infer<typeof zStoreUpdateEvent>;
 export type StoreDeleteEvent = z.infer<typeof zStoreDeleteEvent>;
-export type StoreEvent = z.infer<typeof zStoreEvent>;
+export type StoreTodoEvent = z.infer<typeof zStoreTodoEvent>;
+export type StoreListEvent = z.infer<typeof zStoreListEvent>;
 
 export type TodoStoreExport = z.infer<typeof zTodoStoreExport>;
 

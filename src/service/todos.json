@@ -110,14 +110,14 @@
     },
     {
       "data": {
-        "state": "TODO",
+        "state": "DONE",
         "title": "Allow filtering what TODOs to show (by state)",
         "createdByUser": "pid48680"
       },
       "meta": {
         "id": "a2bb397f-9fa2-484a-ac95-3fc9301f47e3",
-        "lastModifiedTime": "2025-02-06T09:32:16.051Z",
-        "revision": 1
+        "lastModifiedTime": "2025-02-06T12:05:15.417Z",
+        "revision": 3
       }
     },
     {
@@ -178,6 +178,18 @@
         "id": "506c10f9-90a8-469f-84c4-caa62d1487a6",
         "lastModifiedTime": "2025-02-06T09:35:26.752Z",
         "revision": 1
+      }
+    },
+    {
+      "data": {
+        "state": "ONGOING",
+        "title": "Ability to add new lists",
+        "createdByUser": "pid47152"
+      },
+      "meta": {
+        "id": "9a7c6cff-b18f-426a-b2aa-2188266b19cf",
+        "lastModifiedTime": "2025-02-06T12:23:43.968Z",
+        "revision": 2
       }
     }
   ],

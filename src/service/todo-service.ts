@@ -2,10 +2,10 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import { zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
-import { ErrorBody, StoredTodoItem, Revision, StoreEvent, StoreUpdateEvent } from '../phaedra.types';
+import { ErrorBody, StoredTodoItem, Revision, StoreTodoEvent, StoreUpdateEvent } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { CreateTodoResult, ITodoStore, UpdateTodoResult, DeleteResult } from '../store/store-crud';
-import { IListenableTodoStore, StoreListener } from '../store/store-listen';
+import { IListenableTodoStore, TodoListener } from '../store/store-listen';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
 import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
@@ -43,20 +43,20 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
   apiServer.get('/todo-lists/:listName/todos', (req: Request, res: Response<StoredTodoItem[] | ErrorBody>) => {
     const listName = req.params.listName;
-    const todos = todoStore.list(listName);
-    if (!todos) {
+    const result = todoStore.list(listName);
+    if (result === 'list-not-found') {
       res.status(404).send({ message: `List "${listName}" not found` });
       return
     }
 
-    res.send(todos);
+    res.send(result);
   });
 
   apiServer.post('/todo-lists/:listName/todos', (request: Request, response: Response<StoredTodoItem | ErrorBody>) => {
     const getResponseForCreateOperation = (op: CreateTodoResult): [number, StoredTodoItem | ErrorBody] => {
       switch (op.result) {
         case 'created': return [ 201, op.todo];
-        case 'not-found': return [ 404, { message: `${op.missing} not found` }];
+        case 'not-found': return [ 404, { message: `${op.what} not found` }];
       }
     }
 
@@ -75,7 +75,7 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     const getResponseForUpdateOperation = (op: UpdateTodoResult<string>): [number, StoredTodoItem | ErrorBody] => {
       switch (op.result) {
         case 'updated': return [ 200, op.todo];
-        case 'not-found': return [ 404, { message: `${op.missing} not found` }];
+        case 'not-found': return [ 404, { message: `${op.what} not found` }];
         case 'conflict': return [ 409, op.currentItem ];
         case 'validation-failure': return [ 400, { message: op.validationError }];
       }
@@ -138,19 +138,24 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("Connection", "keep-alive");
 
-    const todos = todoStore.list(listName);
-    if (todos) {
-      todos.forEach(todo => {
-        const todoAsEvent: StoreUpdateEvent = { type: 'update', todo };
-        response.write(`data: ${JSON.stringify(todoAsEvent)}\n\n`);
-      });
+    const result = todoStore.list(listName);
+    if (result === 'list-not-found') {
+      response.status(404).send({ message: `List "${listName}" not found` });
+      return;
     }
 
-    const eventListener: StoreListener = (event: StoreEvent) => {
+    // Send current items.
+    result.forEach(todo => {
+      const todoAsEvent: StoreUpdateEvent = { type: 'update', todo };
+      response.write(`data: ${JSON.stringify(todoAsEvent)}\n\n`);
+    });
+
+    // Listen for future updates.
+    const eventListener: TodoListener = (event: StoreTodoEvent) => {
       response.write(`data: ${JSON.stringify(event)}\n\n`);
     };
 
-    const listenerHandle = todoStore.addListener(listName, eventListener);
+    const listenerHandle = todoStore.addTodoListener(listName, eventListener);
 
     console.log(`Client connected to '${listName}' event stream`);
 

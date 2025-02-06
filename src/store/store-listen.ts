@@ -1,11 +1,14 @@
-import { StoreEvent } from "../phaedra.types";
+import { StoreListEvent, StoreTodoEvent } from "../phaedra.types";
 
 export interface IStoreListenerHandle {
   remove(): void;
 }
 
-export type StoreListener = (event: StoreEvent) => void;
+export type TodoListener = (event: StoreTodoEvent) => void;
+
+export type ListListener = (event: StoreListEvent) => void;
 
 export interface IListenableTodoStore {
-  addListener(listName: string, listener: StoreListener): IStoreListenerHandle;
+  addListListener(listener: ListListener): IStoreListenerHandle;
+  addTodoListener(listName: string, listener: TodoListener): IStoreListenerHandle;
 }

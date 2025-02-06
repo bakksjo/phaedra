@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TodoList } from './TodoList';
-import { StoreEvent, StoredTodoItem } from '../../phaedra.types';
+import { StoreTodoEvent, StoredTodoItem } from '../../phaedra.types';
 import { v4 as uuidv4 } from 'uuid';
 
 const mockTodoId = uuidv4();
@@ -51,7 +51,7 @@ class MockEventSource {
 
 global.EventSource = MockEventSource as any;
 
-const dispatchStoreEvent = (event: StoreEvent) => {
+const dispatchStoreEvent = (event: StoreTodoEvent) => {
   act(() => {
     MockEventSource.instances[0].dispatchEvent(JSON.stringify(event));
   });

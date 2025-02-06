@@ -34,10 +34,15 @@ export const zStoreDeleteEvent = z.object({
   id: zTodoItemId,
 });
 
-export const zStoreEvent = z.discriminatedUnion("type", [
+export const zStoreTodoEvent = z.discriminatedUnion("type", [
   zStoreUpdateEvent,
   zStoreDeleteEvent,
 ]);
+
+export const zStoreListEvent = z.object({
+  type: z.enum(['created', 'deleted']),
+  list: z.string().trim().nonempty(),
+});
 
 export const zTodoArray = z.array(zStoredTodoItem);
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { zStoreEvent } from '../../phaedra-schemas';
-import { StoreEvent, TodoState } from '../../phaedra.types';
+import { zStoreTodoEvent } from '../../phaedra-schemas';
+import { StoreTodoEvent, TodoState } from '../../phaedra.types';
 import { TodoItem, TodoCard } from '../TodoCard/TodoCard';
 import { StateFilterSelector } from '../StateFilterSelector/StateFilterSelector';
 import './TodoList.css';
@@ -19,7 +19,7 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
 
     eventSource.onmessage = (event) => {
       const eventDataObject = JSON.parse(event.data);
-      const storeEvent: StoreEvent = zStoreEvent.parse(eventDataObject);
+      const storeEvent: StoreTodoEvent = zStoreTodoEvent.parse(eventDataObject);
 
       // Using this function to guarantee (statically) that all event types are handled. No 'default' case needed.
       type UpdateHandler = () => void;
