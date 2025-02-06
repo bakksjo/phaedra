@@ -7,7 +7,11 @@ import { startTodoService } from './service/todo-service';
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
-const numberOfWindows = 2;
+const numWindowsArg = parseInt(app.commandLine.getSwitchValue("numWindows")) || 1;
+const numberOfWindows = numWindowsArg >= 1 && numWindowsArg <= 10 ? numWindowsArg : 1;
+const storePath = app.commandLine.getSwitchValue("storePath") || "todos.json";
+const updateSlownessMs = parseInt(app.commandLine.getSwitchValue("updateSlownessMs")) || 0;
+const servicePort = parseInt(app.commandLine.getSwitchValue("servicePort")) || 3001;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -34,7 +38,7 @@ const createWindow = (): void => {
   mainWindow.webContents.openDevTools();
 };
 
-const todoServiceShutdown = startTodoService(3001);
+const todoServiceShutdown = startTodoService(servicePort, storePath, updateSlownessMs);
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

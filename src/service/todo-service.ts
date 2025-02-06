@@ -7,31 +7,34 @@ import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { CreateTodoResult, ITodoStore, UpdateTodoResult, DeleteResult } from '../store/store-crud';
 import { IListenableTodoStore, ListListener, TodoListener } from '../store/store-listen';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
-import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
 
-const STORE_FILE_PATH = "src/service/todos.json";
-const UPDATE_SLOWNESS_MS = 1;
 const IF_MATCH_HEADER_DATA_TYPE = (() => { const revisionSentinel: Revision = 1; return typeof(revisionSentinel); })();
 
-function createAndInitializeStore(): [ store: ITodoStore & IListenableTodoStore, storeShutdown: (callback: () => void) => void ] {
+function createAndInitializeStore(storeFilePath: string): [ store: ITodoStore & IListenableTodoStore, storeShutdown: (callback: () => void) => void ] {
   const store = new EphemeralTodoStore();
-  try {
-    const preExistingTodos = zTodoStoreExport.parse(jsonTodos);
-    store.importStore(preExistingTodos);
-  } catch (err) {
-    console.error('Error parsing pre-existing todos:', err);
+  if (storeFilePath) {
+    fs.readFile(storeFilePath, 'utf-8', (err, fileContents) => {
+      if (err) {
+        console.error('Error reading store file:', err, storeFilePath);
+        return;
+      }
+      const fileContentsJson = JSON.parse(fileContents);
+      const loadedTodos = zTodoStoreExport.parse(fileContentsJson);
+      store.importStore(loadedTodos);
+    });
   }
+
   const storeShutdown = (callback: () => void) => {
     const exportData = store.exportStore();
     const fileContents = JSON.stringify(exportData, null, 2);
-    fs.writeFile(STORE_FILE_PATH, fileContents, callback);
-    console.log('Store saved to disk:', STORE_FILE_PATH);
+    fs.writeFile(storeFilePath, fileContents, callback);
+    console.log('Store saved to disk:', storeFilePath);
   };
   return [ store, storeShutdown ];
 }
 
-function configureServiceEndpoints(apiServer: express.Application, todoStore: ITodoStore & IListenableTodoStore) {
+function configureServiceEndpoints(apiServer: express.Application, todoStore: ITodoStore & IListenableTodoStore, updateSlownessMs: number) {
   apiServer.use(express.json());
   apiServer.use(zodErrorHandler);
   apiServer.use(cors());
@@ -81,7 +84,7 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
       const [ httpStatus, responseBody ] = getResponseForCreateOperation(op);
       response.status(httpStatus).send(responseBody);
-    }, UPDATE_SLOWNESS_MS);
+    }, updateSlownessMs);
   });
 
   apiServer.put('/todo-lists/:listName/todos/:todoId', (request: Request, response: Response<StoredTodoItem | ErrorBody>) => {
@@ -113,7 +116,7 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
       const [ httpStatus, responseBody ] = getResponseForUpdateOperation(op);
       response.status(httpStatus).send(responseBody);
-    }, UPDATE_SLOWNESS_MS);
+    }, updateSlownessMs);
   });
 
   apiServer.delete('/todo-lists/:listName/todos/:todoId', (request: Request, response: Response<StoredTodoItem | ErrorBody>) => {
@@ -141,7 +144,7 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
       const [ httpStatus, responseBody ] = getResponseForDeleteOperation(op);
       response.status(httpStatus).send(responseBody);
-    }, UPDATE_SLOWNESS_MS);
+    }, updateSlownessMs);
   });
 
   apiServer.get("/todo-lists/:listName/events", (request: Request, response: Response) => {
@@ -209,10 +212,10 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
   });
 }
 
-export function startTodoService(port: number) {
+export function startTodoService(port: number, storePath: string, updateSlownessMs: number) {
   const restServer = express();
-  const [store, storeShutdown] = createAndInitializeStore();
-  configureServiceEndpoints(restServer, store);
+  const [store, storeShutdown] = createAndInitializeStore(storePath);
+  configureServiceEndpoints(restServer, store, updateSlownessMs);
   const runningServer = restServer.listen(port, () => {
     console.log(`Todo service running on port ${port}`);
   });
