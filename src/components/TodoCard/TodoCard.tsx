@@ -2,18 +2,25 @@ import React, { useState } from 'react';
 import { StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoState } from '../../phaedra.types';
 import './TodoCard.css';
 import { TextInput } from '../TextInput/TextInput';
+import { set } from 'zod';
 
 type StoredItem = {
   type: 'stored';
   data: TodoItemData;
   meta: StoredTodoItemMetadata;
-}
+};
 
 type EphemeralItem = {
   type: 'ephemeral';
   data: TodoItemData;
   meta: { id: string };
-}
+};
+
+type ConflictState = {
+  originalTitle: string;
+  localTitle: string;
+  serverUpdatedTitle: string;
+};
 
 export type TodoItem = StoredItem | EphemeralItem;
 
@@ -41,6 +48,7 @@ export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) 
   const [isEditingState, setIsEditingState] = useState(false);
   const [isUpdatePending, setIsUpdatePending] = useState(false);
   const [newState, setNewState] = useState(todo.data.state);
+  const [conflictState, setConflictState] = useState<ConflictState | undefined>(undefined);
 
   const getStateIcon = (state: TodoState): string => {
     switch (state) {
@@ -105,10 +113,27 @@ export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) 
       const response = await request;
 
       if (todo.type === 'stored' && response.status === 409) {
-        console.log('Conflict detected, showing latest');
-      } else if (!response.ok) {
+        const responseTodo: StoredTodoItem = await response.json();
+        console.log('Conflict detected:', responseTodo);
+        updateTodo({ type: 'stored', data: responseTodo.data, meta: responseTodo.meta });
+
+        if (responseTodo.data.title === localUpdatedTodo.title) return; // No local edit to care about.
+
+        // We have a title edit conflict, let's give the user a chance to resolve it.
+        setConflictState({
+          originalTitle: todo.data.title,
+          localTitle: localUpdatedTodo.title,
+          serverUpdatedTitle: responseTodo.data.title
+        });
+        setIsUpdatePending(false);
+        setIsEditingTitle(true);
+        return;
+      }
+
+      if (!response.ok) {
         throw new Error("Failed to update TODO item");
       }
+
       const responseTodo: StoredTodoItem = await response.json();
       updateTodo({ type: 'stored', data: responseTodo.data, meta: responseTodo.meta });
     } catch (error) {
@@ -121,6 +146,7 @@ export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) 
 
   const submitTitleInputChange = async (newTitle: string) => {
     setIsEditingTitle(false);
+    setConflictState(undefined);
     if (newTitle === todo.data.title) {
       return;
     }
@@ -139,6 +165,7 @@ export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) 
 
   const cancelEditingTitle = () => {
     setIsEditingTitle(false);
+    setConflictState(undefined);
     if (todo.type === 'ephemeral') onRemove(todo.meta.id);
   }
 
@@ -176,9 +203,14 @@ export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) 
       <div className="todo-card-header">
         <div className="todo-card-mutable-props">
           <div className="todo-card-title-container">
+            {conflictState && (
+              <div className="todo-card-conflict">
+                <span className='todo-card-conflict-label'>⚠️ A conflict was detected; title is now:</span><span className='todo-card-conflict-title'>{conflictState.serverUpdatedTitle}</span>
+              </div>
+            )}
             {isEditingTitle ? (
               <TextInput
-                value={todo.data.title}
+                value={conflictState?.localTitle ?? todo.data.title}
                 placeholder="Enter title"
                 validator={titleValidator}
                 onSubmit={submitTitleInputChange}

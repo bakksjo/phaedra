@@ -29,6 +29,12 @@
   justify-content: space-between;
 }
 
+.todo-card-title-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .todo-card-state-container {
   display: flex;
   flex-direction: row;
@@ -97,4 +103,22 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+.todo-card-conflict {
+  border: 1px solid #f5c6cb;
+  background-color: #f8d7da;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+.todo-card-conflict-label {
+  font-weight: bold;
+  color: #721c24;
+}
+
+.todo-card-conflict-title {
+  font-weight: bold;
+  margin-left: 5px;
 }
