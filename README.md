@@ -7,9 +7,18 @@ npm install
 npm package
 ```
 
-The binary will be in out/phaedra-<platform>/, e.g. out/phaedra-win32-x64/phaedra.exe
+The binary will be found in
+```
+out/phaedra-<platform>/
+```
 
 # Running
+Example (Windows):
+```
+out/phaedra-win32-x64/phaedra.exe --numWindows=2
+```
+
+## Configuration
 The Phaedra app takes the following command-line arguments:
 
 ```
