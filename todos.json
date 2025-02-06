@@ -134,26 +134,26 @@
     },
     {
       "data": {
-        "state": "TODO",
+        "state": "ONGOING",
         "title": "Cmdline option to set number of windows to open",
         "createdByUser": "pid48680"
       },
       "meta": {
         "id": "1eb17b61-d282-4f2b-8379-063d752de7db",
-        "lastModifiedTime": "2025-02-06T09:33:27.266Z",
-        "revision": 1
+        "lastModifiedTime": "2025-02-06T20:07:57.403Z",
+        "revision": 2
       }
     },
     {
       "data": {
-        "state": "TODO",
+        "state": "ONGOING",
         "title": "Cmdline option to set slowness factor",
         "createdByUser": "pid48680"
       },
       "meta": {
         "id": "5700d7d4-f5e8-4dbc-983b-ef4a01aacb30",
-        "lastModifiedTime": "2025-02-06T09:34:07.087Z",
-        "revision": 1
+        "lastModifiedTime": "2025-02-06T20:07:45.836Z",
+        "revision": 2
       }
     },
     {

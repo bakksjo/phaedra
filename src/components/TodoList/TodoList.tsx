@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { zStoreTodoEvent } from '../../phaedra-schemas';
 import { StoreTodoEvent, TodoState } from '../../phaedra.types';
 import { TodoItem, TodoCard } from '../TodoCard/TodoCard';
 import { StateFilterSelector } from '../StateFilterSelector/StateFilterSelector';
+import { BaseUrlContext } from '../BaseUrlContext';
 import './TodoList.css';
 
 interface ITodoListProps { 
@@ -11,12 +12,13 @@ interface ITodoListProps {
 }
 
 export const TodoList = ({ listName, username }: ITodoListProps) => {
+  const serviceBaseUrl = React.useContext(BaseUrlContext);
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [selectedStates, setSelectedStates] = useState<TodoState[]>(['TODO', 'ONGOING', 'DONE']);
   const [liveUpdate, setLiveUpdate] = useState<boolean>(true);
 
   useEffect(() => {
-    const eventSource = new EventSource(`http://localhost:3001/todo-lists/${listName}/events`);
+    const eventSource = new EventSource(`${serviceBaseUrl}/todo-lists/${listName}/events`);
 
     eventSource.onmessage = (event) => {
       if (!liveUpdate) return;

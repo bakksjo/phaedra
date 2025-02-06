@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import './TodoListSelector.css';
+import React, { useEffect, useState } from 'react';
 import { CreateListRequest, StoreListEvent } from '../../phaedra.types';
 import { zStoreListEvent } from '../../phaedra-schemas';
 import { TextInput } from '../TextInput/TextInput';
+import { BaseUrlContext } from '../BaseUrlContext';
+import './TodoListSelector.css';
 
 interface TodoListSelectorProps {
   onSelect: (listName: string) => void;
@@ -14,11 +15,12 @@ interface ListState {
 }
 
 export const TodoListSelector = ({ onSelect }: TodoListSelectorProps) => {
+  const serviceBaseUrl = React.useContext(BaseUrlContext);
   const [state, setState] = useState<ListState>({ listNames: [], selectedList: '' });
   const [isAddingNewList, setIsAddingNewList] = useState(false);
 
   useEffect(() => {
-    const eventSource = new EventSource(`http://localhost:3001/todo-lists/events`);
+    const eventSource = new EventSource(`${serviceBaseUrl}/todo-lists/events`);
 
     eventSource.onmessage = (event) => {
       const eventDataObject = JSON.parse(event.data);
@@ -87,7 +89,7 @@ export const TodoListSelector = ({ onSelect }: TodoListSelectorProps) => {
     const requestBody: CreateListRequest = { listName: listName };
 
     try {
-      const response = await fetch(`http://localhost:3001/todo-lists`, {
+      const response = await fetch(`${serviceBaseUrl}/todo-lists`, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',

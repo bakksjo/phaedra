@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { StoredTodoItem, StoredTodoItemMetadata, TodoItemData, TodoState } from '../../phaedra.types';
-import './TodoCard.css';
 import { TextInput } from '../TextInput/TextInput';
-import { set } from 'zod';
+import { BaseUrlContext } from '../BaseUrlContext';
+import './TodoCard.css';
 
 type StoredItem = {
   type: 'stored';
@@ -44,6 +44,7 @@ interface TodoCardProps {
 const titleValidator = (title: string): boolean => !!(title.trim());
 
 export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) => {
+  const serviceBaseUrl = React.useContext(BaseUrlContext);
   const [isEditingTitle, setIsEditingTitle] = useState(todo.type === 'ephemeral');
   const [isEditingState, setIsEditingState] = useState(false);
   const [isUpdatePending, setIsUpdatePending] = useState(false);
@@ -89,7 +90,7 @@ export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) 
     try {
       const request = todo.type === 'ephemeral'
         ? fetch(
-            `http://localhost:3001/todo-lists/${listName}/todos`,
+            `${serviceBaseUrl}/todo-lists/${listName}/todos`,
             {
               method: "POST",
               headers: {
@@ -99,7 +100,7 @@ export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) 
             }
           )
         : fetch(
-            `http://localhost:3001/todo-lists/${listName}/todos/${todo.meta.id}`,
+            `${serviceBaseUrl}/todo-lists/${listName}/todos/${todo.meta.id}`,
             {
               method: "PUT",
               headers: {
@@ -175,7 +176,7 @@ export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) 
     setIsUpdatePending(true);
     try {
       const response = await fetch(
-        `http://localhost:3001/todo-lists/${listName}/todos/${todo.meta.id}`,
+        `${serviceBaseUrl}/todo-lists/${listName}/todos/${todo.meta.id}`,
         {
           method: "DELETE",
           headers: {

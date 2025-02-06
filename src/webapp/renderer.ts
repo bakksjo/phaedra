@@ -32,6 +32,12 @@ import { initTopLevelReactElement } from './init-top-level-react-element';
 // Get a dynamic username based on the process ID for each window.
 const username = 'pid' + window.process.pid;
 
-initTopLevelReactElement(username);
+async function fetchBaseUrl() {
+  const data = await (window as any).electronAPI.getAppData();
+  return data.serviceBaseUrl;
+}
 
-
+fetchBaseUrl().then((baseUrl) => {
+  console.log('Renderer: Fetched baseUrl:', baseUrl);
+  initTopLevelReactElement(username, baseUrl);
+});
