@@ -9,6 +9,5 @@ export const initTopLevelReactElement = (username: string, serviceBaseUrl: strin
     throw new Error(`Could not find DOM node with id "${DOM_ENTRY_POINT_ID}; check the index.html file"`);
   }
   const root = createRoot(domNode);
-  console.log('Rendering PhaedraApp with username:', username, 'and serviceBaseUrl:', serviceBaseUrl);
   root.render(<PhaedraApp initialUsername={username} serviceBaseUrl={serviceBaseUrl} />);
 }

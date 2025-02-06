@@ -38,6 +38,5 @@ async function fetchBaseUrl() {
 }
 
 fetchBaseUrl().then((baseUrl) => {
-  console.log('Renderer: Fetched baseUrl:', baseUrl);
   initTopLevelReactElement(username, baseUrl);
 });
