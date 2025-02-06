@@ -7,6 +7,10 @@ jest.mock('../TodoList/TodoList', () => ({
   TodoList: () => <div data-testid="todo-list">Mocked TodoList</div>,
 }));
 
+jest.mock('../TodoListSelector/TodoListSelector', () => ({
+  TodoListSelector: () => <div data-testid="todo-list-selector">Mocked TodoListSelector</div>,
+}));
+
 describe('PhaedraApp', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -24,6 +28,7 @@ describe('PhaedraApp', () => {
       render(<PhaedraApp initialUsername="testuser" />);
     });
 
+    screen.debug();
     expect(screen.queryByTestId('todo-list-selector')).toBeInTheDocument();
     expect(screen.queryByTestId('username-input')).not.toBeInTheDocument();
   });

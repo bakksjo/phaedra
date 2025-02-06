@@ -2,10 +2,10 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import { zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
-import { ErrorBody, StoredTodoItem, Revision, StoreTodoEvent, StoreUpdateEvent } from '../phaedra.types';
+import { ErrorBody, StoredTodoItem, Revision, StoreTodoEvent, StoreUpdateEvent, StoreListEvent } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { CreateTodoResult, ITodoStore, UpdateTodoResult, DeleteResult } from '../store/store-crud';
-import { IListenableTodoStore, TodoListener } from '../store/store-listen';
+import { IListenableTodoStore, ListListener, TodoListener } from '../store/store-listen';
 import { EphemeralTodoStore } from '../store/ephemeral-todo-store';
 import jsonTodos from './todos.json';
 import { validateUpdate } from './validation';
@@ -161,6 +161,35 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
 
     response.on("close", () => {
       console.log(`Client disconnected from '${listName}' event stream`);
+      listenerHandle.remove();
+      response.end();
+    });
+  });
+
+  apiServer.get("/todo-lists/events", (request: Request, response: Response) => {
+    response.setHeader("Content-Type", "text/event-stream");
+    response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("Connection", "keep-alive");
+
+    const result = todoStore.getLists();
+
+    // Send current items.
+    result.forEach(listName => {
+      const event: StoreListEvent = { type: 'created', list: listName };
+      response.write(`data: ${JSON.stringify(event)}\n\n`);
+    });
+
+    // Listen for future updates.
+    const eventListener: ListListener = (event: StoreListEvent) => {
+      response.write(`data: ${JSON.stringify(event)}\n\n`);
+    };
+
+    const listenerHandle = todoStore.addListListener(eventListener);
+
+    console.log(`Client connected to list event stream`);
+
+    response.on("close", () => {
+      console.log(`Client disconnected from list event stream`);
       listenerHandle.remove();
       response.end();
     });
