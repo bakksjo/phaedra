@@ -113,9 +113,7 @@ export const TodoListSelector = ({ onSelect }: TodoListSelectorProps) => {
 
   return (
     <div className="todo-list-selector" data-testid="todo-list-selector">
-      {state.listNames.length === 0 ? (
-        <span>No TODO lists available.</span>
-      ) : (
+      {state.listNames.length > 0 && (
         <>
           <label htmlFor="todo-list-selector" className="selector-label">
             List:
