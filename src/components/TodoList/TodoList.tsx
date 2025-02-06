@@ -13,11 +13,14 @@ interface ITodoListProps {
 export const TodoList = ({ listName, username }: ITodoListProps) => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [selectedStates, setSelectedStates] = useState<TodoState[]>(['TODO', 'ONGOING', 'DONE']);
+  const [liveUpdate, setLiveUpdate] = useState<boolean>(true);
 
   useEffect(() => {
     const eventSource = new EventSource(`http://localhost:3001/todo-lists/${listName}/events`);
 
     eventSource.onmessage = (event) => {
+      if (!liveUpdate) return;
+
       const eventDataObject = JSON.parse(event.data);
       const storeEvent: StoreTodoEvent = zStoreTodoEvent.parse(eventDataObject);
 
@@ -40,7 +43,7 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
     return () => {
       eventSource.close();
     };
-  }, [listName]);
+  }, [listName, liveUpdate]);
 
   const handleAddNewTodo = () => {
     const newTodoItem: TodoItem = {
@@ -80,13 +83,31 @@ export const TodoList = ({ listName, username }: ITodoListProps) => {
     setSelectedStates(selectedStates);
   };
 
+  const handleLiveUpdateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLiveUpdate(event.target.checked);
+  };
+
   const filteredTodos = todos.filter(todo => selectedStates.includes(todo.data.state));
 
   return (
     <div className="todo-list" data-testid="todo-list">
       <div className="todo-list-header">
         <button className="todo-list-button-add" onClick={handleAddNewTodo}>+ New item</button>
-        <StateFilterSelector selected={selectedStates} onChange={handleStateFilterChange} />
+        <div className="todo-list-controls">
+          <div className="todo-list-controls-liveupdate">
+            <label>
+              <input
+                type="checkbox"
+                checked={liveUpdate}
+                onChange={handleLiveUpdateChange}
+              />
+              Live Update
+            </label>
+          </div>
+          <div className="todo-list-controls-filter">
+            <StateFilterSelector selected={selectedStates} onChange={handleStateFilterChange} />
+          </div>
+        </div>
       </div>
       {filteredTodos.length === 0 ? (
         <span className="todo-list-empty">{todos.length == 0 ? 'No todos in this list' : 'No todos matching filter'}</span>

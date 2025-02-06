@@ -20,3 +20,29 @@
   font-size: 1em;
   cursor: pointer;
 }
+
+.todo-list-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.todo-list-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.todo-list-controls-filter {
+  display: flex;
+  flex-direction: row;
+  margin-top: 1em;
+}
+
+.todo-list-controls-liveupdate {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
