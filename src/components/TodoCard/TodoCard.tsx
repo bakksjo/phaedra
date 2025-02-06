@@ -172,7 +172,7 @@ export const TodoCard = ({ listName, todo, onUpdate, onRemove }: TodoCardProps) 
   const availableStateTransitions: TodoState[] = validStateTransitions[todo.data.state];
 
   return (
-    <div className={`todo-card ${isUpdatePending ? 'pending-update' : ''}`}>
+    <div className={`todo-card ${isUpdatePending ? 'pending-update' : ''}`} data-testid="todo-card">
       <div className="todo-card-header">
         <div className="todo-card-mutable-props">
           <div className="todo-card-title-container">

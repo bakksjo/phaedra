@@ -35,7 +35,7 @@ export const TodoListSelector = ({ onSelect }: TodoListSelectorProps) => {
   };
 
   return (
-    <div className="todo-list-selector">
+    <div className="todo-list-selector" data-testid="todo-list-selector">
       <label htmlFor="todo-list-selector" className="selector-label">List:</label>
       <select
         id="todo-list-selector"
