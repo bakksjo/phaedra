@@ -12,16 +12,22 @@
 }
 
 .selector-dropdown {
-  padding: 8px;
+  padding: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 16px;
   background-color: #fff;
   color: #333;
   cursor: pointer;
+  margin-right: 1em;
 }
 
 .selector-dropdown:focus {
   border-color: #007bff;
   outline: none;
+}
+
+.todo-list-selector button {
+  font-size: 1rem; /* Increase font size */
+  cursor: pointer;
 }

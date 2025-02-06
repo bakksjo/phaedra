@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import fs from 'fs';
-import { zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
+import { zCreateListRequest, zCreateTodoRequest, zIfMatchHeader, zTodoStoreExport, zUpdateTodoRequest } from '../phaedra-schemas';
 import { ErrorBody, StoredTodoItem, Revision, StoreTodoEvent, StoreUpdateEvent, StoreListEvent } from '../phaedra.types';
 import { zodErrorHandler } from './middleware/zodErrorHandler';
 import { CreateTodoResult, ITodoStore, UpdateTodoResult, DeleteResult } from '../store/store-crud';
@@ -41,6 +41,19 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
     res.send(lists);
   });
 
+  apiServer.post('/todo-lists', (request: Request, response: Response<ErrorBody>) => {
+    const requestData = zCreateListRequest.parse(request.body);
+    const listName = requestData.listName;
+
+    const result = todoStore.createList(listName);
+    if (result === 'already-exists') {
+      response.status(409).send({ message: `List '${listName}' already exists` });
+      return;
+    }
+
+    response.status(201).send({ message: `List '${listName}' created` });
+  });
+
   apiServer.get('/todo-lists/:listName/todos', (req: Request, res: Response<StoredTodoItem[] | ErrorBody>) => {
     const listName = req.params.listName;
     const result = todoStore.list(listName);
@@ -49,7 +62,7 @@ function configureServiceEndpoints(apiServer: express.Application, todoStore: IT
       return
     }
 
-    res.send(result);
+    res.status(201).send(result);
   });
 
   apiServer.post('/todo-lists/:listName/todos', (request: Request, response: Response<StoredTodoItem | ErrorBody>) => {

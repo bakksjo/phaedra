@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import './TodoListSelector.css';
-import { StoreListEvent } from '../../phaedra.types';
+import { CreateListRequest, StoreListEvent } from '../../phaedra.types';
 import { zStoreListEvent } from '../../phaedra-schemas';
+import { TextInput } from '../TextInput/TextInput';
 
 interface TodoListSelectorProps {
   onSelect: (listName: string) => void;
@@ -14,6 +15,7 @@ interface ListState {
 
 export const TodoListSelector = ({ onSelect }: TodoListSelectorProps) => {
   const [state, setState] = useState<ListState>({ listNames: [], selectedList: '' });
+  const [isAddingNewList, setIsAddingNewList] = useState(false);
 
   useEffect(() => {
     const eventSource = new EventSource(`http://localhost:3001/todo-lists/events`);
@@ -43,6 +45,12 @@ export const TodoListSelector = ({ onSelect }: TodoListSelectorProps) => {
     };
   }, []);
 
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const chosenList = event.target.value;
+    setState(prevState => ({ ...prevState, selectedList: chosenList }));
+    onSelect(chosenList);
+  };
+
   const handleListCreated = (listName: string) => {
     setState(prevState => {
       if (prevState.listNames.includes(listName)) {
@@ -71,27 +79,66 @@ export const TodoListSelector = ({ onSelect }: TodoListSelectorProps) => {
     });
   };
 
-  const handleListClick = (listName: string) => {
-    setState(prevState => ({ ...prevState, selectedList: listName }));
-    onSelect(listName);
+  const handleAddNewListClick = () => {
+    setIsAddingNewList(true);
+  };
+
+  const handleNewListSubmit = async (listName: string) => {
+    const requestBody: CreateListRequest = { listName: listName };
+
+    try {
+      const response = await fetch(`http://localhost:3001/todo-lists`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create new list');
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsAddingNewList(false);
+    }
+  };
+
+  const handleNewListCancel = () => {
+    setIsAddingNewList(false);
   };
 
   return (
-    <div className="todo-list-selector">
+    <div className="todo-list-selector" data-testid="todo-list-selector">
       {state.listNames.length === 0 ? (
-        <span>No TODO lists available</span>
+        <span>No TODO lists available.</span>
       ) : (
-        <ul>
-          {state.listNames.map(listName => (
-            <li
-              key={listName}
-              className={state.selectedList === listName ? 'selected' : ''}
-              onClick={() => handleListClick(listName)}
-            >
-              {listName}
-            </li>
-          ))}
-        </ul>
+        <>
+          <label htmlFor="todo-list-selector" className="selector-label">
+            List:
+          </label>
+          <select
+            id="todo-list-selector"
+            value={state.selectedList}
+            onChange={handleChange}
+            className="selector-dropdown"
+          >
+            {state.listNames.map((listName) => (
+              <option key={listName} value={listName}>
+                {listName}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
+      {!isAddingNewList && <button onClick={handleAddNewListClick}>+ New list</button>}
+      {isAddingNewList && (
+        <TextInput
+          placeholder="Enter list name"
+          onSubmit={handleNewListSubmit}
+          onCancel={handleNewListCancel}
+        />
       )}
     </div>
   );

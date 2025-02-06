@@ -13,7 +13,8 @@ import {
   zStoreDeleteEvent,
   zStoreUpdateEvent,
   zStoreTodoEvent,
-  zStoreListEvent
+  zStoreListEvent,
+  zCreateListRequest
 } from './phaedra-schemas';
 
 export type TodoItemId = z.infer<typeof zTodoItemId>;
@@ -31,5 +32,6 @@ export type StoreListEvent = z.infer<typeof zStoreListEvent>;
 export type TodoStoreExport = z.infer<typeof zTodoStoreExport>;
 
 export type ErrorBody = z.infer<typeof zErrorBody>;
+export type CreateListRequest = z.infer<typeof zCreateListRequest>;
 export type CreateTodoRequest = z.infer<typeof zCreateTodoRequest>;
 export type FetchTodosResponse = z.infer<typeof zFetchTodosResponse>;

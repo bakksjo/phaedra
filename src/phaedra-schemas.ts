@@ -6,6 +6,7 @@ export const zTimestamp = z.string().datetime(); // ISO 8601 string
 export const zRevision = z.number().int().positive();
 export const zTodoItemState = z.enum(['TODO', 'ONGOING', 'DONE']);
 export const zTodoItemTitle = z.string().trim().nonempty();
+export const zListname = z.string().trim().nonempty();
 
 export const zTodoItemData = z.object({
   state: zTodoItemState,
@@ -54,6 +55,10 @@ export const zIfMatchHeader = z.coerce.number().int().positive();
 
 export const zErrorBody = z.object({
   message: z.string(),
+});
+
+export const zCreateListRequest = z.object({
+  listName: zListname,
 });
 
 export const zCreateTodoRequest = zTodoItemData;
